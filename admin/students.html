@@ -209,10 +209,15 @@ add.onclick = e=>{
   let result ={
     sn: table.children.length,
     name: "",
-    gender: ""
+    gender: "",
+    
   }
   addRow(result);
-  currentStudents["std"+result.sn] = result;
+    let lastN = Number(result.sn);
+    while (currentStudents["std"+lastN]){
+        lastN++;
+    }
+  currentStudents["std"+lastN] = result;
 }
   
    /* printBtn.onclick = e=>{
