@@ -5,7 +5,9 @@
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="../config.js"></script>
+  
   <script src="../batch2.js"></script>
+
 
   <title>Position</title>
 </head>
@@ -39,6 +41,8 @@
   import {getFirestore, doc, setDoc, getDoc} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
   import {getAuth, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
      // import {getDatabase, set, ref, onValue, child, get } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+
+  
 
 
       const app = initializeApp(firebaseConfig);
@@ -199,7 +203,9 @@ let sectionRef = doc(db, schoolId, "section");
       reportCard.innerHTML = `
          <caption>
       <header>
-      <h2>${schoolName.toUpperCase()}</h2>
+      
+      <h2>${schoolName}</h2>
+    
       <address>
       BULUNKUTU ABUJA, MAIDUGURI, BORNO STATE
       <br>
@@ -219,19 +225,20 @@ let sectionRef = doc(db, schoolId, "section");
       <h3>TERMINAL REPORT</h3>
       <table class="student-info-table">
       <tr class="std-name">      
-        <td colspan="2">NAME: ${std.name.toUpperCase()}</td>
+        <td>NAME: ${std.name.toUpperCase()}</td>
+        <td>GENDER: ${std.gender}</td>
       </tr>
       <tr>
-      <td>GENDER: ${std.gender}</td>
+      <td>TERM: 1<sup>st</sup></td>
       <td>CLASS: ${classSelect.value}</td>
       </tr>
       <tr>    
-      <td>SESSION: ${sessionSelect.value}</td>
-      <td>RESUMPTION DATE: <strong><time>5<sup>th</sup> JANUARY, 2026</time></strong></td>
+      <td>SESSION: ${sessionSelect.value.split(",")[0]}</td>
+      <td>RESUMPTION: <strong><time>5<sup>th</sup> JANUARY, 2026</time></strong></td>
       </tr>
       <tr>
-      <td>NUMBER IN CLASS: ${students.length}</td>      
-      <td>POSITION: ${std.position}</td>
+      <td >NO: IN CLASS: ${students.length}</td>      
+      <td style="font-weight: bolder">POSITION: ${toSuperscriptOrdinal(Number(std.position))}</td>
       </tr>
       </table>   
       </caption>
@@ -245,7 +252,9 @@ let sectionRef = doc(db, schoolId, "section");
         </tr>
       `;
       let subjects = std.subjects;
-      for (const subj in subjects) {
+      let subKeys = Object.keys(subjects).sort().reverse();
+      //for (const subj in subjects) {
+      subKeys.forEach(subj=>{
         
       let t1= Number(subjects[subj][termIndex].test1 ?? 0);
       let t2 = Number(subjects[subj][termIndex].test2 ?? 0);
@@ -263,7 +272,7 @@ let sectionRef = doc(db, schoolId, "section");
         
         `;
         reportCard.appendChild(row);
-      }//);
+      });
       
       
       const comnt = remark(std.score/std.sc, 0); //comment(std.score/std.sc, averageInterps);
@@ -341,6 +350,26 @@ let sectionRef = doc(db, schoolId, "section");
   if (num === 0) return 0;
   return Number(num.toPrecision(sf));
      }
+  
+  
+  function toSuperscriptOrdinal(num) {
+  const suffixes = {
+    '1': 'ˢᵗ',
+    '2': 'ⁿᵈ',
+    '3': 'ʳᵈ'
+  };
+
+  // Handle 11th, 12th, 13th as special cases
+  const lastTwo = num % 100;
+  let suffix = 'ᵗʰ';
+
+  if (lastTwo < 11 || lastTwo > 13) {
+    const lastDigit = num % 10;
+    suffix = suffixes[lastDigit] || 'ᵗʰ';
+  }
+
+  return num + suffix;
+}
   </script>
   
 <style>
@@ -415,7 +444,8 @@ let sectionRef = doc(db, schoolId, "section");
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   //box-shadow: 0 4px 20px rgba(0,0,0,0.1);
    
-}
+   margin: auto;
+ }
 
  th,
 td {
@@ -538,8 +568,8 @@ text-align: center;
 }
   
   .logo {
-   // border-radius: 50%;
-    height: 120px;
+   border-radius: 50%;
+    height: 130px;
     width:100px;
   position: relative;
    
@@ -602,6 +632,7 @@ text-align: center;
   }
 .table-container {
   border: 2px solid #b12449;
+  margin: auto;
 }
   @media print {
     hr {
@@ -636,6 +667,7 @@ text-align: center;
     table {
   border-collapse: collapse;
   width: 100%;
+      margin: auto;
 }
 
 table th, table td {
@@ -663,6 +695,15 @@ table tr:nth-child(odd) {
     display: none;
   }
     
+  
+  h2 {
+    font-weight; bolder;
+    font-size: 30px;
+  }
+  
+  .student-info-table {
+    text-transform: uppercase;
+  }
   </style>
 </body>
 </html>
