@@ -1,236 +1,298 @@
 <!DOCTYPE html>
-
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <script src="/config.js"></script>
-  <script src="/batch2.js"></script>
+   <script src="../config.js"></script>
+ <script src="../batch2.js"></script>
 
   <title>Teacher Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
   <style>
+  :root {
+    --navy-deep: #4d0618;
+    --navy: #870b2d;
+    --navy-mid: #870b2d;
+    --gold: #c0556f;
+    --gold-soft: #ece9e6;
+    --pearl: #f7f6f4;
+    --danger: #c0392b;
+    --radius-lg: 14px;
+    --radius-sm: 8px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
     padding: 0;
-    background: #f0f4f8;
-    color: #333;
+    background: var(--pearl);
+    color: #4d252f;
   }
 
   h1 {
     text-align: center;
-    padding: 1rem;
-    background-color: #4A90E2;
-    color: white;
+    padding: 1.4rem 1rem 1.1rem;
+    background: #f7f6f4;
+    color: #2f2d33;
+    border-bottom: 1px solid #e7e4e1; border-top: 3px solid #870b2d;
     margin: 0;
-    font-size: 2rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-size: 2.1rem;
+    box-shadow: 0 2px 10px rgba(47,45,51,0.08);
+	box-shadow: 0 2px 10px rgba(47,45,51,0.08);
+	
   }
 
   .load-container, .register-container {
-    background: white;
+    background: #ffffff;
     margin: 2rem auto;
-    padding: 1.5rem;
-    border-radius: 10px;
+    padding: 1.5rem 1.6rem;
+    border-radius: var(--radius-lg);
     max-width: 600px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 18px rgba(33,18,22, 0.08);
+    border: 1px solid rgba(110,12,37, 0.08);
   }
 
   .load-container h2,
   .register-container h2 {
     margin-top: 0;
-    color: #4A90E2;
-    border-bottom: 2px solid #4A90E2;
-    padding-bottom: 0.5rem;
+    color: var(--navy);
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 0.6rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.03em;
   }
 
   .load, .register {
-    background: #e8f0fe;
-    padding: 0.8rem 1rem;
-    margin: 0.5rem 0;
-    border-left: 5px solid #4A90E2;
-    border-radius: 5px;
-    transition: background 0.3s ease;
+    background: #f7f6f4;
+    padding: 0.85rem 1rem;
+    margin: 0.6rem 0;
+    border-left: 4px solid var(--navy-mid);
+    border-radius: var(--radius-sm);
+    transition: background 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+    font-weight: 500;
   }
 
   .load:hover, .register:hover {
-    background: #d0e3fc;
+    background: #ece9e6;
+    border-left-color: var(--gold);
     cursor: pointer;
+    transform: translateX(2px);
   }
 
   @media (max-width: 600px) {
     .load-container, .register-container {
-      margin: 1rem;
-      padding: 1rem;
+      margin: 1.2rem;
+      padding: 1.1rem;
     }
 
     h1 {
       font-size: 1.5rem;
+	  
     }
   }
-  
-  
-  
-  
+
   header {
-  
+    display: flex;
     align-items: center;
-    background: #3f51b5;
-    color: #fff;
-    padding:  15px 20px;
-    
-    margin-bottom: 10px;
-  
+    background: #f7f6f4;
+    color: #2f2d33;
+    border-bottom: 1px solid #e7e4e1; border-top: 3px solid #870b2d;
+    padding: 15px 20px;
+	padding-bottom: 20px;
+    //margin-bottom: 10px;
     position: sticky;
-    top:0;
+    top: 0;
     z-index: 99;
     min-height: 60px;
     line-height: 24px;
-  }
-  
-  
-  
-  
-  
-    #signout:hover {
-    background-color: #d32f2f;
-    transform: scale(1.05);
+    //box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
   }
 
-  #signout:active {
-    transform:scale(0.98);
+  header hr {
+    display: none;
   }
-  
 
+  #session, #date {
+    font-size: 0.85rem;
+    color: #870b2d;
+    letter-spacing: 0.02em;
+	text-transform: capitalize;
+  }
 
-   
-    .menu-container.show {
-        transition: transform 0.2s ease-out;
-        transform: scaleX(100%);
-        
-    }
-  
-  
+  #date {
+    margin-left: auto;
+    margin-right: 75px;
+	
+	
+  }
+
+  #signout1 {
+    background: transparent;
+    border: 1px solid rgba(47,45,51,0.36);
+    color: #870b2d;
+    border-radius: var(--radius-sm);
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-top: 0;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+
+  #signout1:hover {
+    background: rgba(47,45,51,0.064);
+    border-color: var(--gold);
+  }
+
   #menu {
-        position: absolute;
-        right:0;
-        top: 0;
-        background: none; // inherit;
-        color: inherit;
-        border: none;
-        font-size: 40px;
+    position: absolute;
+    right: 16px;
+    top: 0px;
+    background: none;
+    color: inherit;
+    border: none;
+    font-size: 32px;
     font-weight: bold;
-  z-index: 101;
-    }
-  
-  
-  
+    z-index: 101;
+    cursor: pointer;
+    line-height: 1;
+  }
+
   .menu-container {
     max-height: 100vh;
-        position: absolute;
-        right: 0;
-        z-index: 110;
-        transform: scaleX(0);
-        text-align: left;
-        top: 0:
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 110;
+    transform: scaleX(0);
+    transform-origin: right;
+    text-align: left;
     overflow: auto;
-  background-color: inherit; // #1e1e1e;
-  color: #ffffff;
-  padding: 20px;
-  width: 220px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: auto;
+    background: #ffffff;
+    color: #870b2d;
+    padding: 22px;
+    width: 230px;
+    border-radius: 0 0 0 var(--radius-lg);
+    box-shadow: -6px 0 20px rgba(47,45,51,0.144);
+    font-family: 'Poppins', sans-serif;
   }
 
-.menu-container button#close {
-  background: transparent;
-  color: #ffffff;
-  border: none;
-  font-size: 18px;
-  float: right;
-  cursor: pointer;
-}
+  .menu-container.show {
+    transition: transform 0.2s ease-out;
+    transform: scaleX(1);
+  }
 
-/*.menu-container hr {
-  border: 0;
-  height: 1px;
-  background:  #444;
-  margin: 10px 0;
-}*/
-
-.menu-container ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu-container li {
-  overflow: auto;
-  transition: background 0.3s, transform 0.2s;
-  margin: 12px 0;
-  
-}
-
-.menu-container a {
-  color: #80cbc4;
-  text-decoration: none;
-  font-weight: bold;
-  transition: color 0.3s ease;
-}
-
-.menu-container a:hover {
-  color: #4db6ac;
-}
-
-#signout,  #switch {
-  cursor: pointer;
-  padding: 10px 20px;
-    background-color: #4caf50;
+  .menu-container button#close {
+    background: transparent;
+    color: #870b2d;
     border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 6px;
+    font-size: 18px;
+    float: right;
     cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.3s ease;
+  }
 
-}
-  
+  .menu-container hr {
+    border: 0;
+    height: 1px;
+    background: rgba(47,45,51,0.2);
+    margin: 14px 0;
+	display: block;
+  }
+
+  .menu-container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .menu-container li {
+    overflow: auto;
+    transition: background 0.25s ease, transform 0.15s ease;
+    margin: 12px 0;
+  }
+
+  .menu-container a {
+    color: #870b2d;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.25s ease;
+  }
+
+  .menu-container a:hover {
+    color: var(--gold);
+  }
+
+  #signout, #switch {
+    cursor: pointer;
+    padding: 10px 16px;
+    background-color: #f7f6f4;
+    border: 1px solid rgba(47,45,51,0.28);
+    color: #870b2d;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    margin-top: 4px;
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+
+  #signout:hover, #switch:hover {
+    background-color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  #switch:hover {
+    background-color: var(--gold);
+    border-color: var(--gold);
+    color: var(--navy-deep);
+  }
+
+  #signout:active, #switch:active {
+    transform: scale(0.98);
+  }
+
   button {
     padding: 10px 20px;
-    background-color: #4caf50;
+    background-color: var(--gold);
     border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 6px;
+    color: var(--navy-deep);
+    font-weight: 700;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     margin-top: 10px;
-    transition: background 0.3s ease;
-  }
-  
-  #signout1 {
-    background: none;
-    border: 0.5px solid white;
-    border-radius: 4px;
-    border-bottom: none;
+    transition: filter 0.25s ease;
   }
 
-    hr {
+  button:hover {
+    filter: brightness(1.08);
+  }
+
+  hr {
     border: 0;
-    height: 4px;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(200, 200, 200, 0.75), rgba(0, 0, 0, 0));
-    }
+    height: 3px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(192,85,111, 0.55), rgba(0, 0, 0, 0));
+  }
 
+  header::before{content:"";position:absolute;left:14px;top:50%;transform:translateY(-50%);width:52px;height:52px;background:url(../logo.jpg) center/contain no-repeat}
+header{padding-left:80px!important}
 </style>
 
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../brand.css">
 </head>
 <body>
   <header>
-    <hr>
-    <button id="signout1">Log out</button>
-
+    <button id="signout1" style="display:none">Log out</button>
+    <div id="session">session/term not initialized</div>
+    <div id="date"></div>
     <button id="menu">&#9776;</button>
      <div class="menu-container">
             <button id="close">X</button> Menu
@@ -242,15 +304,12 @@
               <li><a href="../changePsw.html">Change password </a></li>
             </ul>
         </div>
-    <div id="session">session/term not initialized</div>
-    <div id="date"></div>
-    <hr>
   </header>
   <h1>
-   Good Teacher  
+   Good Teacher!
   </h1>
   <div class="load-container">
-    <h2>Academic Load</h2>
+    <h2>Academic Loads</h2>
       
   </div>
   <div class="register-container">
@@ -266,7 +325,7 @@
   import {getFirestore, doc, setDoc, getDoc, serverTimestamp} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
   import {getAuth, updateProfile, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
      // import {getDatabase, set, ref, onValue, child, get } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
-    /*  const firebaseConfig = {
+   /*   const firebaseConfig = {
   apiKey: "AIzaSyCm_DSZaYVQCt0ubBwRkE9nOTryJayxH0w",
   authDomain: "school-in-the-box.firebaseapp.com",
   projectId: "school-in-the-box",
@@ -290,7 +349,7 @@
   //time.innerHTML = `${h} : {}{
   date.innerHTML = `${day}/${month}/${year}`;
 
-  //const schoolId = "alhidayah";
+  const schoolId = "kauna";
   
     let sessionsRef = doc(db, schoolId, "sessions");
 let teachersRef = doc(db, schoolId, "teachers");
