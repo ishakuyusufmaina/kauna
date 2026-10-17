@@ -1,13 +1,15 @@
-self.addEventListener('install', function(event) {
-  console.log('Service Worker installed.');
-  self.skipWaiting(); // Activate worker immediately
+// service-worker.js
+
+self.addEventListener('install', (event) => {
+  console.log('Service worker installed.');
+  self.skipWaiting(); // Optional: activate immediately
 });
 
-self.addEventListener('activate', function(event) {
-  console.log('Service Worker activated.');
+self.addEventListener('activate', (event) => {
+  console.log('Service worker activated.');
 });
 
-self.addEventListener('fetch', function(event) {
-  // Basic fetch event required for installability
+self.addEventListener('fetch', (event) => {
+  // Basic example: let network requests pass through
   event.respondWith(fetch(event.request));
 });

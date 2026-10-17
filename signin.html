@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="config.js"></script>
+  <script src="batch2.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <script src="config.js"></script>
-
   <link rel="apple-touch-icon" sizes="180x180" href="asset/favicon-180x180.png">
-<link rel="icon" type="image/png" sizes="32x32" href="asset/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="asset/favicon-16x16.png">
-<link rel="manifest" href="asset/site.webmanifest">
-<link rel="mask-icon" href="asset/favicon-512x512.png" color="#ffffff">
-<meta name="msapplication-TileColor" content="#ffffff">
-<meta name="msapplication-TileImage" content="asset/mstile-150x150.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="asset/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="asset/favicon-16x16.png">
+  <link rel="manifest" href="asset/site.webmanifest">
+  <link rel="mask-icon" href="asset/favicon-512x512.png" color="#870b2d">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="asset/mstile-150x150.png">
 <!-- Light theme -->
-<meta name="theme-color" content= "#0078D7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f7f6f4" media="(prefers-color-scheme: light)">
 
 <!-- Dark theme -->
-<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
-
+  <meta name="theme-color" content="#f7f6f4" media="(prefers-color-scheme: dark)">
   <title>Kauna - Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
  
@@ -26,11 +25,12 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      
     }
 
     main {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to right, #004080, #0066cc);
+      background: linear-gradient(to right, #870b2d, #a3123a);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -40,8 +40,7 @@
 
     header {
       width: 100%;
-      background-color: #002f5e;
-     // background: #800000;
+      background-color: #9c3150;
       color: white;
       padding: 20px 0;
       display: flex;
@@ -49,20 +48,30 @@
       justify-content: center;
       gap: 15px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      text-transform: uppercase;
+      height: 70px;
     }
 
     header img {
-      height: 50px;
+     height: 50px;
       border-radius:50%;
     }
 
     header h1 {
       font-size: 1.8rem;
-      text-align: center;
     }
+  
+    img {
+    width: 100px;
+    height: 100px;
+    border-radius: 40%;
+    position: absolute;
+    top: -50px;
+    left: calc(50% - 50px);
+  }
 
     .card {
-      background: white;
+      background: rgba(0,0,0, 0.7); // white;
       border-radius: 12px;
       padding: 40px 30px;
       margin-top: 60px;
@@ -70,11 +79,12 @@
       max-width: 400px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       text-align: center;
+      position: relative;
     }
 
     .card h2 {
       margin-bottom: 25px;
-      color: #004080;
+      color: white; // #870b2d;
     }
 
     .card input {
@@ -89,11 +99,11 @@
     .card button {
       width: 100%;
       padding: 12px;
-      background-color: #004080;
-      color: white;
+      background: #f6e8ec; border: 1px solid #e8cdd5;
+      color: #870b2d;
       font-size: 1rem;
       font-weight: 600;
-      border: none;
+      
       border-radius: 8px;
       cursor: pointer;
       margin-top: 15px;
@@ -101,7 +111,7 @@
     }
 
     .card button:hover {
-      background-color: #003060;
+      background-color: #842742;
     }
 
     @media (max-width: 480px) {
@@ -114,7 +124,12 @@
       }
     }
   
-  
+  hr {
+    border: 0;
+    height: 4px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(200, 200, 200, 0.75), rgba(0, 0, 0, 0));
+}
+
   header img {
   height: auto;
   width: 60px; /* or 100%, max-width for responsiveness */
@@ -135,7 +150,7 @@ header img:hover {
   
   footer {
   //margin-top: 50px;
-  background-color: #002f5e;
+  background-color: #9c3150;
   color: #ffffff;
   text-align: center;
   padding: 15px 0;
@@ -152,18 +167,84 @@ footer small {
 }
   
   
+  
+  .logo-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;              /* space between logo and text */
+  flex-wrap: wrap;        /* allows wrapping on small screens */
+}
 
+.school-logo {
+  width: 100px;           /* set a visible, readable size */
+  height: auto;
+  flex-shrink: 0;         /* prevents the logo from shrinking too much */
+}
+
+.school-text h1 {
+  font-size: 1.5rem;
+ // color: #1a1a1a;
+  margin: 0;
+}
+
+.school-text p {
+  margin: 0;
+  color: #2f2d33;
+  font-size: 1rem;
+}
+
+/* ✅ Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+  .school-logo {
+    width: 80px;
+  }
+  .school-text h1 {
+    font-size: 1.2rem;
+  }
+  .school-section {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+  
+  main {
+  background: linear-gradient(180deg, #f7f6f4 0%, #ffffff 70%);
+  padding-bottom: 60px;
+}
+  header { background: #ffffff !important; color: #2f2d33 !important; border-bottom: 1px solid #e7e4e1; border-top: 3px solid #870b2d; box-shadow: 0 2px 10px rgba(47,45,51,0.064) !important; }
+  header h1 { color: #2f2d33; }
+  .card { background: #ffffff; border: 1px solid #ece9e6; border-top: 4px solid #870b2d; box-shadow: 0 12px 30px rgba(47,45,51,0.08); }
+  .card h2 { font-family: var(--font-motto); letter-spacing: .18em; font-weight: 600; color: #870b2d; }
+  .card input { border: 1px solid #d9d4d0; background: #fff; color: #2f2d33; }
+  .card input:focus { outline: none; border-color: #870b2d; box-shadow: 0 0 0 3px rgba(47,45,51,0.096); }
+  .card button { background: #870b2d !important; color: #fff !important; border: 0 !important; letter-spacing: .06em; text-transform: uppercase; }
+  .card button:hover { background: #6a0822 !important; }
+  footer { text-align:center; padding: 14px; color:#7d6a70; background:#f7f6f4; }
+  
+ .card   h2 {
+      text-align: center;
+      margin-top: 30px;
+
+      font-size: 20px;
+    }
   </style>
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="brand.css">
 </head>
 <body>
  
-  <header>
-    <img src="logo.jpg" alt="School Logo" />
+  <header >
     <h1 id="h1">Please wait...</h1>
   </header>
    <main>
   <div class="card">
-    <h2>Sign In</h2>
+    <img src="logo.jpg" alt="School Logo">
+    <hr>
+    <h2>WELCOME</h2>
+  
     <input type="email" id="email" placeholder="Username" required />
     <input type="password" id="password" placeholder="Password" required />
     <button id="loginBtn" onclick="signIn()">Login</button>
@@ -171,28 +252,19 @@ footer small {
   </div>
   </main>
  <footer>
-    <small>©Mainafly 2025</small>
+    <small>©Mainafly 2025 - 2026</small>
   </footer>
-    <script src="batch2.js"></script>
+    
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-analytics.js";
   import {getFirestore, doc, setDoc, getDoc} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
   import {getAuth, createUserWithEmailAndPassword, updateProfile, deleteUser, onAuthStateChanged, signInWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-     // import {getDatabase, set, ref, onValue, child, get } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
-  /*      const firebaseConfig = {
-  apiKey: "AIzaSyCm_DSZaYVQCt0ubBwRkE9nOTryJayxH0w",
-  authDomain: "school-in-the-box.firebaseapp.com",
-  projectId: "school-in-the-box",
-  storageBucket: "school-in-the-box.firebasestorage.app",
-  messagingSenderId: "596350496353",
-  appId: "1:596350496353:web:84c66c351700ddf0824420",
-  measurementId: "G-3MGCDH4FRF"
-};*/
+     //import {getDatabase, set, ref, onValue, child, get } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+
 
      loginBtn.textContent = "Please wait..";
-//  const schoolId = "alhidayah";
-      h1.innerHTML = schoolName;
+  h1.innerHTML = schoolName;
     const app = initializeApp(firebaseConfig);
       const analytics = getAnalytics(app);
       const auth = getAuth(app);
@@ -256,7 +328,8 @@ footer small {
      schoolGeneratedUsername = username.replace(/@.*/, "");
       const role = username.replace(reg, "");
       const password = document.getElementById("password").value;
-   
+
+
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           onLoginSuccess(userCredential.user, role);

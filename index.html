@@ -3,14 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Title -->
+<title>Kauna Private School</title>
+
+<!-- Favicon -->
+<link rel="icon" href="https://kauna.mainafly.com/logo.jpg" type="image/jpeg" />
+
+<!-- Open Graph Meta Tags for Facebook, WhatsApp, etc. -->
+<meta property="og:title" content="Kauna Private School" />
+<meta property="og:description" content="SIB Version of Kauna Private School — Digital Innovative." />
+<meta property="og:image" content="https://kauna.mainafly.com/logo.jpg" />
+<meta property="og:url" content="https://kauna.mainafly.com/" />
+<meta property="og:type" content="website" />
+
+<!-- Twitter Card Meta Tags -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Kauna Private School" />
+<meta name="twitter:description" content="SIB Version of Kauna Private School — Digital Innovative." />
+<meta name="twitter:image" content="https://kauna.mainafly.com/logo.jpg" />
   
 <!-- Favicon links -->
 <link rel="icon" type="image/png" sizes="32x32" href="asset/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="48x48" href="asset/favicon-48x48.png">
+<link rel="icon" type="image/png" sizes="96x96" href="asset/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="72x72" href="asset/favicon-72x72.png">
+  
 <link rel="icon" type="image/png" sizes="64x64" href="asset/favicon-64x64.png">
 <link rel="icon" type="image/png" sizes="128x128" href="asset/favicon-128x128.png">
-<link rel="icon" type="image/png" sizes="192x192" href="asset/favicon-192x192.png">
+   <link rel="icon" type="image/png" sizes="144x144" href="asset/favicon-144x144.png">
+
+   <link rel="icon" type="image/png" sizes="152x152" href="asset/favicon-152x152.png">
+
+ <link rel="icon" type="image/png" sizes="168x168" href="asset/favicon-168x168.png">
+
+  <link rel="icon" type="image/png" sizes="192x192" href="asset/favicon-192x192.png">
+ 
 <link rel="icon" type="image/png" sizes="256x256" href="asset/favicon-256x256.png">
+  <link rel="icon" type="image/png" sizes="384x384" href="asset/favicon-384x384.png">
+
 <link rel="icon" type="image/png" sizes="512x512" href="asset/favicon-512x512.png">
 
 <!-- Web App Manifest -->
@@ -20,7 +50,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="asset/favicon-192x192.png">
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="msapplication-TileImage" content="asset/mstile-150x150.png">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f7f6f4">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -33,14 +63,14 @@
       margin: 0;
       padding: 0;
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f4f8fb, #ffffff);
+      background: linear-gradient(135deg, #f7f6f4, #ffffff);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
       text-align: center;
-      color: #333;
+      color: #2f2d33;
     }
 
     h1 {
@@ -56,12 +86,12 @@
       padding: 12px 28px;
       font-size: 16px;
       font-weight: 600;
-      background-color: #0078d7;
-      color: white;
-      border: none;
+      background: #f6e8ec; border: 1px solid #e8cdd5;
+      color: #870b2d;
+      
       border-radius: 10px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 120, 215, 0.2);
+      box-shadow: 0 4px 12px rgba(187,27,67, 0.2);
       transition: background-color 0.3s ease, transform 0.2s ease;
     }
 
@@ -70,18 +100,21 @@
     }
 
     #install-btn:hover {
-      background-color: #005bb5;
+      background-color: #9c3150;
       transform: translateY(-2px);
     }
 
     #install-btn:active {
       transform: scale(0.98);
     }
+    .crest{width:150px;height:auto;margin-bottom:8px}
+    h1{color:#2f2d33}
+    #sName{color:#870b2d}
   </style>
   
   <script src="config.js"></script>
   <script>
-    sName.textContent = schoolName;
+    document.addEventListener('DOMContentLoaded', () => { document.getElementById('sName').textContent = schoolName; });
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js')
       .then(reg => console.log('Service Worker registered.', reg))
@@ -89,8 +122,13 @@
   }
   </script>
   
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="brand.css">
 </head>
 <body>
+  <img src="logo.jpg" alt="Kauna Private School crest" class="crest">
 
   <h1>Welcome to <small>SIB</small> <span id="sName"></span> Installation</h1>
   <button id="install-btn">Install App</button>

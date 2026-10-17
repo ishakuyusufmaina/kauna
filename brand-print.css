@@ -1,0 +1,11 @@
+/* KAUNA — tokens for print-oriented pages (report cards, receipts).
+   Only headings and the on-screen controls pick up the theme; the printed documents are untouched. */
+:root{--brand-maroon:#870b2d;--brand-btn:#f6e8ec;--brand-btn-line:#e8cdd5;--ink:#2f2d33;
+  --font-display:'Roboto Slab','Rockwell','Clarendon',Georgia,serif;--font-motto:'Oswald','Arial Narrow',Impact,sans-serif;
+  accent-color:var(--brand-maroon)}
+::selection{background:var(--brand-btn);color:#6a0822}
+.no-print h1,.no-print h2,h1.no-print{font-family:var(--font-display);color:var(--ink)}
+:where(a){color:var(--brand-maroon)}
+:where(button){background:var(--brand-btn);color:var(--brand-maroon);border:1px solid var(--brand-btn-line);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer}
+:where(button):hover{background:var(--brand-maroon);color:#fff}
+select:focus,input:focus{outline:2px solid rgba(135,11,45,.35)}
