@@ -10,15 +10,15 @@
   <style>
   body {
     font-family: Arial, sans-serif;
-    background-color: #f5f6fa;
+    background-color: #f7f6f4;
     margin: 20px;
     padding: 20px;
-    color: #2c3e50;
+    color: #2f2d33;
   }
 
   h1 {
     text-align: center;
-    color: #34495e;
+    color: #2f2d33;
     margin-bottom: 30px;
   }
 
@@ -28,7 +28,7 @@
     justify-content: space-between;
     margin-bottom: 20px;
     padding: 10px;
-    background-color: #ecf0f1;
+    background-color: #ece9e6;
     border-radius: 5px;
   }
 
@@ -55,7 +55,7 @@
   }
 
   th {
-    background-color: #3498db;
+    background-color: #9c3150;
     color: white;
   }
 
@@ -77,16 +77,16 @@
   button {
     margin-top: 20px;
     padding: 10px 20px;
-    background-color: #2ecc71;
-    color: white;
-    border: none;
+    background: #f6e8ec; border: 1px solid #e8cdd5;
+    color: #870b2d;
+    
     border-radius: 4px;
     font-size: 16px;
     cursor: pointer;
   }
 
   button:hover {
-    background-color: #27ae60;
+    background-color: #842742;
   }
 
   hr {
@@ -98,6 +98,10 @@
 </style>
 
   <script src="../../config.js"></script>
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../brand.css">
 </head>
   
 <body>
@@ -175,15 +179,15 @@
   
   let d = new Date();
   let year = d.getFullYear();
-  let month = d.getMonth() + 1;
+  let month = d.getMonth();
   let day = d.getDate();
-  let sec = d.getSeconds()+1;
-  let min = d.getMinutes()+1;
-  let h = d.getHours()+1;
+  let sec = d.getSeconds();
+  let min = d.getMinutes();
+  let h = d.getHours();
   let getTime = ()=>{
-  let sec = d.getSeconds()+1;
-  let min = d.getMinutes()+1;
-  let h = d.getHours()+1;
+  let sec = d.getSeconds();
+  let min = d.getMinutes();
+  let h = d.getHours();
     return {sec, min, h}
   }
   //time.innerHTML = `${h} : {}{
