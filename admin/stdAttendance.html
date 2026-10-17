@@ -4,8 +4,8 @@
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <script src="/config.js"></script>
-<script src="/batch2.js"></script>
+ <script src="../config.js"></script>
+<script src="../batch2.js"></script>
 
   <title>Attendance</title>
   
@@ -22,12 +22,12 @@
 body {
   background-color: #f9f9f9;
   padding: 20px;
-  color: #333;
+  color: #2f2d33;
 }
 
 /* Header */
 h1 {
-  color: #2c3e50;
+  color: #2f2d33;
   margin-bottom: 20px;
 }
 
@@ -53,7 +53,7 @@ table {
 }
 
 caption {
-  background-color: #2980b9;
+  background-color: #9c3150;
   color: #fff;
   font-weight: bold;
   padding: 10px;
@@ -78,7 +78,7 @@ tr:hover {
 /* Optional Styling for Summary Section (if re-enabled) */
 div > h2, div > h3 {
   margin-top: 20px;
-  color: #34495e;
+  color: #2f2d33;
 }
 
 ol {
@@ -106,6 +106,10 @@ li {
 
   </style>
   
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../brand.css">
 </head>
 <body>
   <h1>
@@ -187,6 +191,18 @@ let teachersRef = doc(db, schoolId, "teachers");
   let sectionDoc = await getDoc(sectionRef);
   const attendance = {};
   
+  const user = await new Promise(resolve=> onAuthStateChanged(auth, user=>resolve(user)));
+ let headId = user.email.replace(/@.*/, "");
+
+  
+    //let sessionsRef = doc(db, schoolId, "session
+const teachers = teachersDoc.data();
+  console.log(headId);
+  const head = teachers[headId];
+console.log(headId);
+  const rclasses = head.adminFunctions.monSA.resources;
+
+  
 function getDate(){
   let d = new Date();
   let year = d.getFullYear();
@@ -215,20 +231,9 @@ function getDate(){
   }
   
     
- if (sectionDoc.exists()){
-   let sections = sectionDoc.data();
-     
-   let keys = Object.keys(sections);
+let classes = rclasses;
+  classes.forEach(clas=>classSelect.innerHTML +=`<option>${clas}</option>`);
    
-   keys.forEach(key=>{
-       let optG = document.createElement("optgroup");
-       optG.label = key;
-       let classes = sections[key].classes;
-       classes.forEach(clas=>optG.innerHTML +=`<option>${clas}</option>`);
-       classSelect.append(optG);
-   });
-
- }
  
 /*session = key(sessionSelect.value);
     let clas = key(classSelect.value);

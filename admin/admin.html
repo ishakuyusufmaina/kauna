@@ -4,248 +4,73 @@
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <script src="/config.js"></script>
- <script src="/batch2.js"></script>
+  <meta name="theme-color" content="#f7f6f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#f7f6f4" media="(prefers-color-scheme: dark)">
+ <script src="../config.js"></script>
+ <script src="../batch2.js"></script>
 
   <title>School Admin</title>
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
 
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f4f6f9;
-    color: #333;
-    //padding: 20px;
-  }
-  main {
-    padding: 20px;
-  }
+:root{--navy:#870b2d;--navy-d:#6a0822;--indigo:#870b2d;--indigo-d:#6a0822;--green:#870b2d;--green-d:#6a0822;--red:#d32f2f;--bg:#f7f6f4;--line:#ece9e6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:radial-gradient(1100px 380px at 50% -120px,#ece9e6,transparent),var(--bg);color:#2f2d33;min-height:100vh}
+main{max-width:1200px;margin:0 auto;padding:24px 20px 56px}
+header{background:#fff;color:#2f2d33;border-bottom:1px solid #e7e4e1;border-top:3px solid #870b2d;padding:14px 74px 14px 20px;margin-bottom:28px;position:sticky;top:0;z-index:99;min-height:80px;line-height:24px;box-shadow:0 4px 14px rgba(47,45,51,0.08)}
+header hr{border:0;height:1px;margin:6px 0;background:linear-gradient(to right,transparent,rgba(47,45,51,0.28),transparent)}
+#sess{font-weight:600;font-size:1.05rem}
+#date{opacity:.75;font-size:.9rem}
+h1{text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:28px;font-size:1.8rem;font-weight:700;color:var(--indigo)}
+#code{font-weight:bold;font-size:1.3rem;color:var(--red);letter-spacing:.12em}
+button{padding:10px 20px;background:var(--green);border:none;color:#fff;font-weight:bold;border-radius:8px;cursor:pointer;margin-top:10px;transition:background .25s,transform .1s}
+button:hover{background:var(--green-d)}
+button:active{transform:scale(.97)}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.card-container{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:20px}
+.card{position:relative;background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 20px 18px;box-shadow:0 1px 2px rgba(36,20,24,.05),0 6px 20px rgba(36,20,24,.06);transition:transform .2s,box-shadow .2s}
+.card-container>.card::before{content:"";position:absolute;left:20px;right:20px;top:0;height:3px;border-radius:0 0 3px 3px;background:linear-gradient(90deg,var(--indigo),#9a3c53)}
+.card-container>.card:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(159,48,76,.18)}
+.card .card{box-shadow:none;background:#f7f6f4;border-radius:12px;padding:2px 10px 10px}
+h2{display:flex;align-items:center;gap:12px;color:var(--indigo-d);font-size:1.1rem;font-weight:600;margin-bottom:8px}
+.ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;background:#ece9e6;color:#870b2d}
+.ico svg{width:22px;height:22px}
+.card>.ico{margin-bottom:12px}
+a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;margin-top:8px;border-radius:10px;background:#f7f6f4;color:#4d0618;font-weight:500;text-decoration:none;transition:background .2s}
+a::after{content:"\203A";font-size:1.4rem;line-height:1;opacity:.5;transition:transform .2s,opacity .2s}
+a:hover{background:#ece9e6}
+a:hover::after{transform:translateX(3px);opacity:1}
+p{text-align:right;color:#870b2d}
+hr{border:0;height:4px;background:linear-gradient(to right,rgba(0,0,0,0),rgba(200,200,200,.75),rgba(0,0,0,0))}
+#menu{position:absolute;right:14px;top:14px;width:46px;height:46px;margin:0;padding:0;background:transparent;color:inherit;border:1px solid rgba(47,45,51,0.28);border-radius:12px;font-size:24px;line-height:1;z-index:101}
+#menu:hover{background:rgba(47,45,51,0.064)}
+#signout1{display:inline-block;margin:0 0 4px;padding:5px 16px;background:#fff;border:1px solid rgba(47,45,51,0.28);border-radius:99px;color:#870b2d;font-size:.8rem;letter-spacing:.06em;cursor:default;user-select:none}
+.menu-container{position:absolute;right:0;top:0;z-index:110;max-height:100vh;overflow:auto;width:240px;padding:20px;text-align:left;background:#fff;color:#870b2d;border:1px solid #ece9e6;border-radius:0 0 0 16px;box-shadow:-8px 8px 30px rgba(47,45,51,0.144);transform:scaleX(0);transform-origin:right;transition:transform .2s ease-out}
+.menu-container.show{transform:scaleX(1)}
+.menu-container button#close{float:right;margin:0;padding:0 6px;background:transparent;color:#870b2d;font-size:18px}
+.menu-container hr{margin:12px 0}
+.menu-container ul{list-style:none}
+.menu-container li{margin:12px 0}
+.menu-container a{display:flex;align-items:center;gap:8px;margin:0;padding:6px 0;background:transparent;color:#870b2d;font-weight:bold}
+.menu-container a::after{content:none}
+.menu-container a:hover{color:#6a0822;background:transparent}
+.menu-container svg{width:18px;height:18px;flex:none}
+#signout,#switch{display:flex;align-items:center;gap:8px;padding:11px 16px;background:var(--green);color:#fff;font-weight:bold;border-radius:8px;cursor:pointer;transition:background .25s,transform .1s}
+#switch:hover{background:var(--green-d)}
+#signout:hover{background:var(--red)}
+#signout:active,#switch:active{transform:scale(.98)}
+.fx{display:none}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
-  header {
-  //  display: flex;
-    justify-content: space-between;
-    align-items: center;
-   // background: #0078D7;
-    background: #800000;
-    color: #fff;
-    padding: 15px 20px;
-    //border-radius: 10px;
-    margin-bottom: 30px;
-  
-    position: sticky;
-    top:0;
-    z-index: 99;
-    min-height: 80px;
-    line-height: 24px;
-  }
-
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 2rem;
-    color: #3f51b5;
-  }
-
-  #code {
-    font-weight: bold;
-    font-size: 1.3rem;
-    color: #d32f2f;
-  }
-
-  button {
-    padding: 10px 20px;
-    background-color: #4caf50;
-    border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.3s ease;
-  }
-
-  button:hover {
-    background-color: #388e3c;
-  }
-
-  a {
-    text-decoration: none;
-    color: #1a237e;
-    font-weight: 500;
-    display: block;
-    margin-top: 10px;
-  }
-
-  .card-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-  }
-
-  .card {
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    transition: transform 0.2s;
-  }
-
-  .card:hover {
-    transform: translateY(-5px);
-  }
-
-  h2 {
-    color: #303f9f;
-    margin-bottom: 10px;
-    font-size: 1.2rem;
-  }
-  
-  
-  p {
-    text-align: right;
-    color: teal;
-  }
-  hr {
-    border: 0;
-    height: 4px;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(200, 200, 200, 0.75), rgba(0, 0, 0, 0));
-}
- 
-
- 
-
-  #signout:hover {
-    background-color: #d32f2f;
-    transform: scale(1.05);
-  }
-
-  #signout:active, #switch:active {
-    transform:scale(0.98);
-  }
-  
-
-
-   
-    .menu-container.show {
-        transition: transform 0.2s ease-out;
-        transform: scaleX(100%);
-        
-    }
-
-#menu {
-        position: absolute;
-        right:0;
-        top: 0;
-        background: inherit;
-        color: inherit;
-        border: none;
-        font-size: 40px;
-    font-weight: bold;
-  z-index: 101;
-    }
-  
-  
-  
-  .menu-container {
-    max-height: 100vh;
-        position: absolute;
-        right: 0;
-        z-index: 110;
-        transform: scaleX(0);
-        text-align: left;
-        top: 0:
-    overflow: auto;
-  background-color: inherit; // #1e1e1e;
-  color: #ffffff;
-  padding: 20px;
-  width: 220px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    overflow: auto;
-  }
-
-.menu-container button#close {
-  background: transparent;
-  color: #ffffff;
-  border: none;
-  font-size: 18px;
-  float: right;
-  cursor: pointer;
-}
-
-.menu-container hr {
-
-  margin: 10px 0;
-  border: 0;
-  height: 4px;
-  background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(200, 200, 200, 0.75), rgba(0, 0, 0, 0));
-z-index: 102;
-}
-
-.menu-container ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu-container li {
-  overflow: auto;
-  transition: background 0.3s, transform 0.2s;
-  margin: 12px 0;
-  
-}
-
-.menu-container a {
-  color: #80cbc4;
-  text-decoration: none;
-  font-weight: bold;
-  transition: color 0.3s ease;
-}
-
-.menu-container a:hover {
-  color: #4db6ac;
-}
-
-#signout, #switch {
-  color: white;
-    border: none;
-    padding: 14px 20px;
-    font-size: 16px;
-    top:0;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-
-  cursor: pointer;
-  padding: 10px 20px;
-    background-color: #4caf50;
-    border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background 0.3s ease;
-
-}
-  
-  #signout1 {
-    background: none;
-    border: 0.5px solid white;
-    border-radius: 4px;
-    border-bottom: none;
-    border-right: none;
-    user-select: none;
-    z-order: 0;
-  }
+    
+  header::before{content:"";position:absolute;left:14px;top:50%;transform:translateY(-50%);width:52px;height:52px;background:url(../logo.jpg) center/contain no-repeat}
+header{padding-left:80px!important}
 </style>
 
 
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../brand.css">
 </head>
 <body >
       
@@ -268,83 +93,130 @@ z-index: 102;
     <hr>
   </header>
   <main id="main" style="display:none">
-  <h1>Admin  </h1>
+  <h1 id="h1">Admin  </h1>
     
     <div class="card-container">
-    <div class="card auth">
+    <div class="card fx auth">
       Authorization code: <span id="code"></span>
       <button id="generate">Generate new</button>
       <button id="save" style="display:none">Save</button>
       
     </div>
 
-      <div class="card monTAS">
+      <div class="card fx monTAS">
         <h2>Teach and Sign</h2>
         <a href="teachAndLog.html">Monitor Teach and Sign</a>
       </div>
       
-    <div class="card monSA">
-      <h2>Student Attendace</h2>
+    <div class="card fx monSA">
+      <h2>Student Attendance</h2>
       <a href="stdAttendance.html">Monitor Student Attendance</a>
     </div>
       
        
       
-    
-    <div class="card rc">
-      <h2>Academic Performance</h2>
-      <a href="reportCards.html">Report Cards</a>
-      <a href="reportOverview.html">Overview</a>
-     
-    </div>
+      <div class="card fx rc">
+        <h2>Academic Performance</h2>
+        <div class="card">
+        <a href="reportCards.html">Report Cards</a>
+         <a href=" averageUpdate.html">Terminal Average Backward Compatibility</a>
+        <a href="reportOverview.html">Results Overview</a>
+        </div> 
+     </div>
+      <div class="card fx rcConfig">
+       <h2>Report Card Management</h2>
+       <a href="rc/configuration.html">Configure Report Card</a>
+      </div>
       
-    
+     <div class="card fx scoresheetConfig">
+       <h2>Scoresheet Management</h2>
+       <a href="rc/scoreSheetConfig.html">Configure Scoresheet</a>
+      </div>
 
-    <div class="card session">
+   <div class="card fx managePsycho">
+     <h2>Psychometrics Management</h2>
+       <a href="define-psycho.html">Manage Psychometrics</a>
+   </div>
+      
+   
+
+    <div class="card fx session">
       <h2>Academic Session</h2>
       <a href="session.html">Manage Session</a>
     </div>
 
-    <div class="card section">
+    <div class="card fx section">
       <h2>School Sections</h2>
       <a href="section.html">Manage Sections</a>
     </div>
 
-    <div class="card subjects">
-      <h2>Subjects</h2>
-      <a href="subjects.html">Manage Subjects</a>
+    <div class="card fx subjects">
+      <h2>Subjects Management</h2>
+      <div class="card">
+        <a href="subjects.html">Subjects</a>
+    
+        <a href="rbsd.html">Differential Subjects</a>
+      </div>
     </div>
 
-    <div class="card teachers">
+    <div class="card fx teachers">
       <h2>Teachers</h2>
       <a href="teachers.html">Manage Teachers</a>
     </div>
 
-    <div class="card students">
+    <div class="card fx students">
       <h2>Students</h2>
-      <a href="students.html">Manage Students</a>
+      <a href="class.html">Manage Students</a>
     </div>
 
-    <div class="card fm">
+    <div class="card fx promotion">
+      <h2>Student Promotion</h2>
+      <a href="promotion.html">Promote Students</a>
+    </div>
+
+    <div class="card fx fm">
       <h2>Form Masters</h2>
       <a href="formMaster.html">Assign Form Masters</a>
     </div>
+     
+     <div class="card fx roles">
+      <h2>Roles</h2>
+      <a href="manageRole.html">Manage Roles</a>
+     </div>
 
-    <div class="card admins">
+    <div class="card fx admins">
       <h2>Manage Admins</h2>
       <a href="manageAdmins.html">Admin Settings</a>
     </div>
-      
-    <!--/div>
-      <div class="card">
-      <h2>Fees Management</h2>
-      <p>[Work in Progress (20%)]</p>
-    </div-->
 
-    <!--div class="card">
-      <h2>Parents</h2>
-      <p>(Coming soon)</p>
-    </div-->
+      
+        <div class="card fx feesSet">
+          <h2>School Fees Setting</h2>
+          <a href="school-fees-setting.html">Fix School Fees</a>
+        </div>
+        <div class="card fx feesRecord">
+          <h2>School Fees Payment</h2>
+          <a href="bursary/index.html">Record School Fees</a>
+        </div>
+        <div class="card fx feesView">
+          <h2>School Fees Records</h2>
+          <a href="bursary/records.html">View School Fees</a>
+        </div>
+        <div class="card fx feesDefaulter">
+          <h2>School Fees Defaulters</h2>
+          <a href="bursary/defaulter.html">Check School Fees Defaulters</a>
+        </div>
+        <div class="card fx otherFees">
+          <h2>Other Fees Setting</h2>
+          <a href="bursary/custom-fees.html">Set Other Fees</a>
+        </div>
+      
+      
+     <div class="card fx cloudBill">
+      <h2>Cloud and Storage Billing</h2>
+    </div>
+      
+
 
   
 </main>
@@ -369,7 +241,7 @@ z-index: 102;
       const analytics = getAnalytics(app);
       const auth = getAuth(app);
     const db = getFirestore(app);
-//const schoolId= "alhidayah";
+const schoolId = "kauna";
   const terms = ["first term", "second term", "third term"];
   
    var sessions = [];
@@ -390,6 +262,7 @@ signout1.innerHTML = schoolName.toUpperCase();
 const adminFunctions = [
     "teachers",
     "students",
+    "promotion",
     "rc",
     "admins",
     "fm",
@@ -398,14 +271,24 @@ const adminFunctions = [
     "subjects",
     "auth",
     "monTAS",
-    "monSA"
+    "monSA",
+    "feesSet",
+    "feesRecord",
+    "feesView",
+    "feesDefaulter",
+    "roles",
+    "rcConfig",
+    "scoresheetConfig",
+    "otherFees",
+    "managePsycho",
+    "cloudBill"
   ];
   
-adminFunctions.forEach(fx=>{
+/*adminFunctions.forEach(fx=>{
   let elm = document.querySelector("."+fx);
   if (elm) elm.style = "display: none;"
   
-})
+})*/
   let d = new Date();
   let year = d.getFullYear();
   let month = d.getMonth() + 1;
@@ -505,8 +388,20 @@ adminFunctions.forEach(fx=>{
     let id = user.email.replace(/@.*/, "");
     let teachers = teachersDoc.data();
     let teacher = teachers[id];
+    teacher.adminFunctions??={};
+    teacher.role??={};
+    h1.innerHTML = teacher.roles;
+    if (teacher.role.fm){
+      let classes = teacher.role.fm;
+      teacher.adminFunctions.students??={resources: classes};
+    }
  //   alert(teacher.adminFunctions);
-  teacher.adminFunctions.forEach(fx=>{
+  if (id==schoolId || id=="dev")
+  adminFunctions.forEach(fx=>{
+    let elm = document.querySelector("."+fx);
+    if (elm) elm.style = "display: block";
+  })
+  else Object.keys(teacher.adminFunctions).forEach(fx=>{
     let elm = document.querySelector("."+fx);
     if (elm) elm.style = "display: block";
   })
@@ -514,5 +409,14 @@ adminFunctions.forEach(fx=>{
     
   })
   </script>
+<script>
+const P={"auth": "<rect x=\"3\" y=\"11\" width=\"18\" height=\"11\" rx=\"2\"/><path d=\"M7 11V7a5 5 0 0110 0v4\"/>", "monTAS": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z\"/>", "monSA": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4\"/>", "rc": "<path d=\"M18 20V10M12 20V4M6 20v-6\"/>", "rcConfig": "<path d=\"M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6\"/>", "scoresheetConfig": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18M3 15h18M9 3v18\"/>", "managePsycho": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01\"/>", "session": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/>", "section": "<path d=\"M12 2l10 5-10 5L2 7z\"/><path d=\"M2 17l10 5 10-5M2 12l10 5 10-5\"/>", "subjects": "<path d=\"M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z\"/><path d=\"M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z\"/>", "teachers": "<rect x=\"2\" y=\"7\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M2 13h20\"/>", "students": "<path d=\"M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M23 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8\"/>", "promotion": "<path d=\"M2 9l10-5 10 5-10 5z\"/><path d=\"M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5M22 9v6\"/>", "fm": "<path d=\"M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M16 11l2 2 4-4\"/>", "roles": "<circle cx=\"7.5\" cy=\"15.5\" r=\"5.5\"/><path d=\"M21 2l-9.6 9.6M15.5 7.5l3 3\"/>", "admins": "<path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"/><path d=\"M9 12l2 2 4-4\"/>", "feesSet": "<path d=\"M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L2 12V2h10l8.6 8.6a2 2 0 010 2.8z\"/><path d=\"M7 7h.01\"/>", "feesRecord": "<rect x=\"1\" y=\"4\" width=\"22\" height=\"16\" rx=\"2\"/><path d=\"M1 10h22\"/>", "feesView": "<path d=\"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z\"/><path d=\"M14 2v6h6M8 13h8M8 17h8\"/>", "feesDefaulter": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 8v4M12 16h.01\"/>", "otherFees": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 8v8M8 12h8\"/>", "cloudBill": "<path d=\"M18 10h-1.3A8 8 0 109 20h9a5 5 0 000-10z\"/>"};
+const svg=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+Object.keys(P).forEach(k=>document.querySelectorAll(".card."+k).forEach(c=>{const h=c.querySelector("h2"),t=`<span class="ico">${svg(P[k])}</span>`;h?h.insertAdjacentHTML("afterbegin",t):c.insertAdjacentHTML("afterbegin",t)}));
+const mi=(sel,p)=>{const e=document.querySelector(sel);if(e)e.insertAdjacentHTML("afterbegin",svg(p))};
+mi("#switch",'<path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/>');
+mi("#signout",'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>');
+mi(".menu-container a",'<circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6M15.5 7.5l3 3"/>');
+</script>
 </body>
 </html>

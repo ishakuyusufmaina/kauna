@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Role Manager</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+    body {
+      background: linear-gradient(180deg,#f7f6f4 0%,#ffffff 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2f2d33;
+      margin-bottom: 20px;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    button {
+      background: #f6e8ec; border: 1px solid #e8cdd5;
+      
+      color: #870b2d;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover { background: #9c3150; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      background: #f7f6f4;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      transition: 0.2s;
+      animation: fadeIn 0.3s ease;
+    }
+
+    li:hover { background: #f7f6f4; }
+
+    .remove-btn {
+      background: #d9d4d0;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .remove-btn:hover { background: #e04343; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+  <script src="../config.js"></script>
+<script src="../batch2.js"></script>
+
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../brand.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Role Manager</h2>
+    <div class="input-area">
+      <input type="text" id="roleInput" placeholder="Enter a role..." />
+      <button id="add">Add</button>
+    </div>
+    <ul id="roleList"></ul>
+    <hr>
+    <button id="save">Save</button>
+  </div>
+
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-analytics.js";
+  import {getFirestore, doc, setDoc, getDoc} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+  import {getAuth, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+  const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      const auth = getAuth(app);
+    const db = getFirestore(app);
+  
+  const schoolId = "kauna";
+  const rolesRef = doc(db, schoolId, "roles");
+  let rolesDoc = await getDoc(rolesRef);
+  let roles = rolesDoc.exists()? rolesDoc.data().list : [];
+  roles.sort();
+  
+  add.onclick = addRole;
+  save.onclick = async e=>{
+    save.innerHTML = "Saving..";
+    await setDoc(rolesRef, {list: roles});
+    save.innerHTML = "Saved";
+    setTimeout(e=>save.innerHTML = "Save", 2000);
+  }
+    const roleList = document.getElementById("roleList");
+    const roleInput = document.getElementById("roleInput");
+
+    function renderRoles() {
+      roleList.innerHTML = "";
+      roles.forEach((role, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span>${role}</span>
+          <button class="remove-btn" onclick="removeRole(${index})">Delete</button>
+        `;
+       li.querySelector("button").onclick = e=> removeRole(index);
+        roleList.appendChild(li);
+      });
+    }
+
+    function addRole() {
+      const newRole = roleInput.value.trim();
+      if (!newRole) {
+        alert("Role name cannot be empty!");
+        return;
+      }
+      if (roles.includes(newRole)) {
+        alert("This role already exists!");
+        return;
+      }
+      roles.push(newRole);
+      roleInput.value = "";
+      renderRoles();
+    }
+
+    function removeRole(index) {
+      roles.splice(index, 1);
+      renderRoles();
+    }
+
+    // Initialize display
+    renderRoles();
+  </script>
+</body>
+</html>

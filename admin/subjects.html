@@ -4,8 +4,8 @@
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/config.js"></script>
-<script src="/batch2.js"></script>
+<script src="../config.js"></script>
+<script src="../batch2.js"></script>
 
   <title>Subject Reg</title>
     <style>
@@ -13,14 +13,14 @@
     box-sizing: border-box;
   }
     body {
-      background-color: #121212;
-      color: #ffffff;
+      background-color: #f7f6f4;
+      color: #2f2d33;
       font-family: Arial, sans-serif;
       padding: 20px;
     }
   select {
-    background-color: #121212;
-      color: #ffffff;
+    background-color: #f7f6f4;
+      color: #2f2d33;
       font-family: Arial, sans-serif;
   }
 
@@ -31,10 +31,10 @@
 
     td > span {
       padding: 8px;
-      border: 1px solid #333;
+      border: 1px solid #ece9e6;
       border-radius: 5px;
-      background-color: #1e1e1e;
-      color: #fff;
+      background-color: #ffffff;
+      color: #2f2d33;
       display: inline-block;
       width: 100%;
       
@@ -50,7 +50,7 @@
 
     th, td{
       padding: 2px;
-      border: 1px solid #333;
+      border: 1px solid #ece9e6;
       text-align: left;
       width: fit-content;
       
@@ -77,16 +77,16 @@ button {
       margin-top: 1.5rem;
      // width: 100%;
       padding: 0.7rem;
-      background-color: #3f51b5;
-      color: #fff;
-      border: none;
+      background: #f6e8ec; border: 1px solid #e8cdd5;
+      color: #870b2d;
+      
       border-radius: 5px;
       font-size: 1rem;
       cursor: pointer;
     }
 
     button:hover {
-      background-color: #5c6bc0;
+      background-color: #9a3c53;
     }
   
   button.delete {
@@ -103,6 +103,10 @@ button.delete:hover {
 }
 
   </style>
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../brand.css">
 </head>
 <body>
   <!--h1>
@@ -169,11 +173,18 @@ button.delete:hover {
   let data;
     let sectionRef = doc(db, schoolId, "section");
   let section = await getDoc(sectionRef);
+  let teachers = (await getDoc(doc(db, schoolId, "teachers"))).data();
+  let user = await new Promise(resol=>{
+    onAuthStateChanged(auth, u=>resol(u));
+  });
+ let id = user.email.replace(/@.*/, "");
+
   if (section.exists()){
     data = section.data();
     console.log(JSON.stringify(data));
     for (const set in data){
      // console.log(key);
+      if (!teachers[id].adminFunctions.subjects.resources.includes(set)) continue;
       let opt = document.createElement("option");
       opt.innerHTML = set;
       setSelect.append(opt);

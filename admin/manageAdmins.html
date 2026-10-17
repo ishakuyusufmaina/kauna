@@ -1,332 +1,633 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="/config.js"></script>
-<script src="/batch2.js"></script>
-
+  <script src="../config.js"></script>
+  <script src="../batch2.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <title>Admin Manager</title>
-  
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f6f4; --surface: #ffffff; --text: #48272f; --muted: #795d64;
+      --border: #ece9e6; --primary: #9c3150; --primary-hover: #9a344d; --primary-soft: #ece9e6;
+      --danger: #c62828; --danger-soft: #ece9e6; --success: #1b7f4b; --warn: #9a5b00; --warn-soft: #fff1d6;
+      --shadow: 0 6px 20px rgba(36,20,24, .12);
+    }
+    
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.4;
+    }
+    .page { max-width: 960px; margin: 0 auto; padding: 16px 16px 110px; }
 
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', sans-serif;
-  }
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+    .header h1 { font-size: 1.5rem; margin: 0; flex: 1; }
+    .sub { color: var(--muted); margin: 0 0 16px; font-size: .95rem; }
 
-  body {
-    padding: 2rem;
-    background: #f4f6f8;
-    color: #333;
-  }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 9px 16px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font: inherit; font-size: .95rem; font-weight: 500;
+      cursor: pointer; transition: background .15s, opacity .15s;
+    }
+    .btn:hover:not(:disabled) { background: var(--primary-soft); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn.primary { background: #f6e8ec; border: 1px solid #e8cdd5; border-color: var(--primary); color: #870b2d; }
+    .btn.primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .btn.danger:hover:not(:disabled) { background: var(--danger); opacity: .9; }
+    .btn.small { padding: 4px 10px; font-size: .8rem; }
+    .btn:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #2c3e50;
-  }
+    .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .search { position: relative; flex: 1; }
+    .search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    input[type=search] {
+      width: 100%; padding: 10px 12px 10px 36px; font: inherit; color: var(--text);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    }
+    .count { color: var(--muted); font-size: .9rem; white-space: nowrap; }
 
-  button {
-    margin-top: 1.5rem;
-    padding: 0.75rem 1.2rem;
-    background-color: #3f51b5;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+    .notice { padding: 12px 14px; border-radius: 10px; margin-bottom: 12px; font-size: .95rem; }
+    .notice.error { background: var(--danger-soft); color: var(--danger); }
+    .notice.info { background: var(--primary-soft); }
 
-  button:hover {
-    background-color: #5c6bc0;
-  }
+    /* admin cards */
+    .admins { display: grid; gap: 10px; }
+    details.admin { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+    details.admin[open] { border-color: var(--primary); }
+    details.admin.changed { border-left: 4px solid var(--warn); }
+    details.admin > summary {
+      list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    }
+    details.admin > summary::-webkit-details-marker { display: none; }
+    .chev { color: var(--muted); transition: transform .15s; }
+    details.admin[open] .chev { transform: rotate(90deg); }
+    .avatar {
+      flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
+      background: var(--primary-soft); color: var(--primary); font-weight: 700; font-size: .95rem;
+    }
+    .who { flex: 1; min-width: 0; }
+    .who-name { font-weight: 600; overflow-wrap: anywhere; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .who-user { color: var(--muted); font-size: .85rem; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+    .badge { font-size: .72rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; background: var(--primary-soft); color: var(--primary); white-space: nowrap; }
+    .badge.warn { background: var(--warn-soft); color: var(--warn); }
+    .body { padding: 4px 14px 16px; border-top: 1px solid var(--border); }
+    .section-label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 8px; }
 
-  hr {
-    margin: 2rem 0;
-    border: none;
-    height: 1px;
-    background-color: #ddd;
-  }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { position: relative; }
+    .chip input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+    .chip span { display: block; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); font-size: .88rem; user-select: none; transition: background .12s, color .12s; }
+    .chip input:checked + span { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .chip input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .chip:hover input:not(:checked) + span { background: var(--primary-soft); }
+    .muted { color: var(--muted); font-size: .9rem; }
 
-  details {
-    background: white;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  }
+    .perms { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; align-items: start; }
+    .perm { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+    .perm.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary-soft) 45%, transparent); }
+    .perm-head { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 500; }
+    .perm-head span { flex: 1; }
+    .perm .chips { margin-top: 10px; }
+    .perm-tools { display: flex; gap: 6px; margin-top: 10px; }
 
-  summary {
-    font-weight: 600;
-    font-size: 1.1rem;
-    cursor: pointer;
-    margin-bottom: 0.5rem;
-  }
+    input.switch {
+      appearance: none; -webkit-appearance: none; flex: none; width: 38px; height: 22px; border-radius: 999px;
+      background: var(--border); position: relative; cursor: pointer; transition: background .15s; margin: 0;
+    }
+    input.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+    input.switch:checked { background: var(--primary); }
+    input.switch:checked::after { transform: translateX(16px); }
+    input.switch:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-  }
+    .empty { text-align: center; color: var(--muted); padding: 40px 16px; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; }
+    .empty i { font-size: 1.8rem; display: block; margin-bottom: 8px; opacity: .6; }
+    .skeleton { height: 66px; border-radius: 12px; border: 1px solid var(--border); background: linear-gradient(90deg, var(--surface), var(--primary-soft), var(--surface)); background-size: 200% 100%; animation: shimmer 1.3s infinite; }
+    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-  th, td {
-    padding: 0.8rem;
-    border-bottom: 1px solid #e0e0e0;
-    text-align: left;
-    vertical-align: middle;
-  }
+    .savebar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface);
+      border-top: 1px solid var(--border); box-shadow: 0 -4px 16px rgba(36,20,24, .08);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    .savebar-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+    .savebar-inner span { flex: 1; font-weight: 500; }
 
-  td label {
-    font-weight: 500;
-  }
+    dialog { border: none; border-radius: 16px; padding: 0; width: calc(100% - 32px); max-width: 480px; background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+    dialog::backdrop { background: rgba(22,12,14, .55); }
+    .dlg { padding: 22px; }
+    .dlg h2 { margin: 0 0 6px; font-size: 1.2rem; }
+    .dlg p { margin: 0 0 14px; color: var(--muted); }
+    .dlg-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+    .cand-list { list-style: none; margin: 12px 0 0; padding: 0; max-height: 50vh; overflow-y: auto; display: grid; gap: 6px; }
+    .cand { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; }
+    .cand .who-name { font-size: .95rem; }
+    .cand .avatar { width: 34px; height: 34px; font-size: .8rem; }
 
-  td input[type="checkbox"] {
-    transform: scale(1.2);
-    cursor: pointer;
-  }
+    .toasts { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 100; display: grid; gap: 8px; width: min(420px, calc(100% - 24px)); pointer-events: none; }
+    .toast { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); animation: toast-in .2s ease-out; pointer-events: auto; }
+    .toast.out { opacity: 0; transform: translateY(-6px); transition: .25s; }
+    .toast.success i { color: var(--success); } .toast.error i { color: var(--danger); } .toast.info i { color: var(--primary); }
+    .toast.error { border-color: var(--danger); }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } }
 
-  .modal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 600px;
-    background: white;
-    padding: 2rem;
-    border-radius: 14px;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    overflow-y: auto;
-    max-height: 80vh;
-  }
+    @media (max-width: 560px) {
+      .badges { display: none; }
+      .perms { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  </style>
 
-  .modal-content h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1.4rem;
-    color: #2c3e50;
-  }
-
-  #closeBtn {
-    position: absolute;
-    top: 0;
-    right: 1rem;
-    font-size: 1.2rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: black;
-  }
-
-  .modal input[type="search"] {
-    width: 100%;
-    padding: 0.7rem;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-  }
-
-  #save {
-    background-color: #27ae60;
-  }
-
-  #save:hover {
-    background-color: #2ecc71;
-  }
-</style>
-
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../brand.css">
 </head>
 <body>
-  <h1>
-    Admins Management
-  </h1>
-  <div id="admins">
-   
-  </div>
-        
-  <hr>
-  <button id="newAdd">Please wait..</button>
-  
-    <!-- Modal -->
-  <div  id="modal" class="modal">
-    <div class="modal-content"> 
-      <h3>New Admin</h3>
-      <button id="closeBtn">X</button>
-      <input id="s" type="search">
-      <table id="table">
-        
-      </table>
-      
+  <div class="page">
+    <div class="header">
+      <h1>Admins</h1>
+      <button type="button" id="newAdd" class="btn primary" disabled><i class="fas fa-user-plus"></i> Add admin</button>
+    </div>
+    <p class="sub">Choose what each admin can do, and which sections or classes it applies to.</p>
+
+    <div id="notice" class="notice" hidden></div>
+
+    <div class="toolbar" id="toolbar" hidden>
+      <div class="search">
+        <i class="fas fa-search"></i>
+        <input id="search" type="search" placeholder="Search admins" aria-label="Search admins">
+      </div>
+      <span class="count" id="count" aria-live="polite"></span>
+    </div>
+
+    <div class="admins" id="admins">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
     </div>
   </div>
-  <button id="save">Save</button>
-  
+
+  <div class="savebar" id="savebar" hidden>
+    <div class="savebar-inner">
+      <span id="saveInfo"></span>
+      <button type="button" id="discard" class="btn">Discard</button>
+      <button type="button" id="save" class="btn primary">Save changes</button>
+    </div>
+  </div>
+
+  <!-- Add admin -->
+  <dialog id="addDialog" aria-labelledby="addTitle">
+    <div class="dlg">
+      <h2 id="addTitle">Add an admin</h2>
+      <p>Pick a teacher to make an admin. You'll choose their permissions next.</p>
+      <div class="search">
+        <i class="fas fa-search"></i>
+        <input id="candSearch" type="search" placeholder="Search teachers" aria-label="Search teachers">
+      </div>
+      <ul class="cand-list" id="candList"></ul>
+      <div class="dlg-actions"><button type="button" id="addClose" class="btn">Close</button></div>
+    </div>
+  </dialog>
+
+  <!-- Confirm -->
+  <dialog id="confirmDialog" aria-labelledby="cTitle">
+    <div class="dlg">
+      <h2 id="cTitle"></h2>
+      <p id="cBody"></p>
+      <div class="dlg-actions">
+        <button type="button" id="cCancel" class="btn">Cancel</button>
+        <button type="button" id="cOk" class="btn primary">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-analytics.js";
-  import {getFirestore, doc, setDoc, getDoc} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-  import {getAuth, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-     // import {getDatabase, set, ref, onValue, child, get } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
- /*     const firebaseConfig = {
-  apiKey: "AIzaSyCm_DSZaYVQCt0ubBwRkE9nOTryJayxH0w",
-  authDomain: "school-in-the-box.firebaseapp.com",
-  projectId: "school-in-the-box",
-  storageBucket: "school-in-the-box.firebasestorage.app",
-  messagingSenderId: "596350496353",
-  appId: "1:596350496353:web:84c66c351700ddf0824420",
-  measurementId: "G-3MGCDH4FRF"
-};*/
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-      const auth = getAuth(app);
-    const db = getFirestore(app);
-  
-//  const schoolId = "alhidayah";
-  let teacherDoc = await getDoc(doc(db, schoolId, "teachers"));
-  let teachers = teacherDoc.exists()? teacherDoc.data() : {};
-  let sectionDoc = await getDoc(doc(db, schoolId, "section"));
-  
-  
-  const adminFunctions = {
-    teachers: "Manage teachers",
-    students: "Manage students",
-    rc: "Manage report cards",
-    admins: "Manage admins",
-    fm: "Assign form master",
-    session: "Launch academic session",
-    section: "Manage school sections",
-    subjects: "Manage school subjects",
-    auth: "Authorize teach and sign",
-    monTAS: "Monitor teach and sign",
-    monSA: "Monitor Student Attendance",
-  };
-  
-  
-  newAdd.innerHTML = "New admin";
-  save.onclick = async e=>{
-   await setDoc(doc(db, schoolId, "teachers"), teachers);
-    alert("saved!");
+  import {getFirestore, doc, getDoc, setDoc} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+  import {getAuth, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const $ = id => document.getElementById(id);
+  const adminsEl = $("admins"), searchEl = $("search"), countEl = $("count"), newAddBtn = $("newAdd"),
+        saveBtn = $("save"), discardBtn = $("discard"), saveBar = $("savebar"), saveInfo = $("saveInfo"),
+        noticeEl = $("notice"), toastsEl = $("toasts");
+
+  // ---------- feedback helpers (no alert / confirm) ----------
+  function toast(text, type = "success") {
+    const icons = { success: "fa-circle-check", error: "fa-circle-exclamation", info: "fa-circle-info" };
+    const el = document.createElement("div");
+    el.className = "toast " + type;
+    el.setAttribute("role", type === "error" ? "alert" : "status");
+    const icon = document.createElement("i");
+    icon.className = "fas " + icons[type];
+    const span = document.createElement("span");
+    span.textContent = text;
+    el.append(icon, span);
+    toastsEl.append(el);
+    setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, type === "error" ? 6000 : 3500);
   }
-  
-  
-  let teacherList = [];
-  for (const username in teachers){
-    let teacher = teachers[username];
-    teacherList.push(teacher);
-    if (teacher.isAdmin){
-      presentAdmin(teacher);
-    }
+  function showNotice(text, type) {
+    noticeEl.textContent = text;
+    noticeEl.className = "notice " + type;
+    noticeEl.hidden = false;
   }
-  
-  function presentAdmin(admin){
-    let teacher = admin;
-    let name= teacher.name;
-      let adminFxns = teacher.adminFunctions;
-    let details = document.createElement("details");
-    let summary = document.createElement("summary");
-    summary.innerHTML = name + " can ..";
-    
-      let tb = document.createElement("table");
-      let supFxns = Array.from(Object.keys(adminFunctions));
-    adminFxns.forEach((fxn, i)=>{
-      let id = `${teacher.username}${fxn.replaceAll(" ","")}${i}`;
-        let row = tb.insertRow();
-        let tdFx = row.insertCell();
-        let tdCan = row.insertCell();
-        tdFx.innerHTML = `<label for="${id}">${adminFunctions[fxn]}</label>`;
-        tdCan.innerHTML = `<input id="${id}" type="checkbox" checked value="${fxn}">`;
-        let index = supFxns.indexOf(fxn);
-        supFxns.splice(index, 1);
-      
-      tdCan.querySelector("input").onchange = e=>{
-                if (e.target.checked){
-          teacher.isAdmin = true;
-          teacher.adminFunctions.push(fx);
-        }
-      }
-        
-      });
-    supFxns.forEach((fx, i)=>{
-      let id = `${teacher.username}${fx.replaceAll(" ","")}${i}no`;
-      let row = tb.insertRow();
-        let tdFx = row.insertCell();
-        let tdCan = row.insertCell();
-        tdFx.innerHTML = `<label for="${id}">${adminFunctions[fx]}</label>`;
-        tdCan.innerHTML = `<input id="${id}" type="checkbox" value="${fx}">`;
-      tdCan.querySelector("input").onchange = e=>{
-        if (e.target.checked){
-          teacher.isAdmin = true;
-          teacher.adminFunctions.push(fx);
-        }
-      }
-    })
-    details.append(summary, tb);
-    admins.append(details);
-    
-    
-   }
-  //let list = ["ux11 ma", "u12 xa", "ux t 3"];
-  teacherList.forEach(teacher =>{
-    if (teacher.isAdmin) return;
-    let row = table.insertRow();
-     let name = row.insertCell();
-     name.innerHTML = teacher.name;
-     let addCell = row.insertCell();
-     let btn = document.createElement("button");
-     addCell.append(btn);
-     btn.innerHTML = "add";
-     btn.onclick = e=>{
-       row.remove();
-       teacher.isAdmin = true;
-       teacher.adminFunctions = [];
-       presentAdmin(teacher);
-     }
-    // table.innerHTML +=`<tr><td>${teacher.name}</td> <td><button>add</button></td></tr>`;
-   }) 
-  s.oninput = e=>{
-    let val = s.value;
-    let reg = new RegExp(`${val}`, "i");
-   let sublist = teacherList.filter(el => reg.test(el.name))
-    table.innerHTML = "";
-   sublist.forEach(list =>{
-     if (list.isAdmin) return;
-     let row = table.insertRow();
-     let name = row.insertCell();
-     name.innerHTML = list.name;
-     let addCell = row.insertCell();
-     let btn = document.createElement("button");
-     addCell.append(btn);
-     btn.innerHTML = "add";
-     btn.onclick = e=>{
-       let teacher = list;
-       row.remove();
-       teacher.isAdmin = true;
-       teacher.adminFunctions = [];
-       presentAdmin(teacher);
-   
-     }
-     //table.innerHTML +=`<tr><td>${list.name}</td> <td><button>add</button></td></tr>`;
-   }) 
+  function confirmDialog({ title, body, confirmText = "Confirm", danger = false }) {
+    return new Promise(resolve => {
+      const dlg = $("confirmDialog");
+      $("cTitle").textContent = title;
+      $("cBody").textContent = body;
+      const ok = $("cOk");
+      ok.textContent = confirmText;
+      ok.className = "btn " + (danger ? "danger" : "primary");
+      let result = false;
+      ok.onclick = () => { result = true; dlg.close(); };
+      $("cCancel").onclick = () => dlg.close();
+      dlg.onclick = e => { if (e.target === dlg) dlg.close(); };
+      dlg.onclose = () => resolve(result);
+      dlg.showModal();
+    });
   }
-  
-  
-  function openModal() {
-    modal.style = "display: block";
+  function fatal(text) {
+    adminsEl.innerHTML = "";
+    $("toolbar").hidden = true;
+    saveBar.hidden = true;
+    newAddBtn.disabled = true;
+    showNotice(text, "error");
+    throw new Error(text);
   }
 
-    function closeModal() {
-      document.getElementById("modal").style = "display: none";
+  // ---------- load ----------
+  const user = await new Promise(resolve => onAuthStateChanged(auth, u => resolve(u)));
+  if (!user) {
+    window.location.href = "../signin.html";
+    throw new Error("Not signed in");
+  }
+  const id = user.email.replace(/@.*/, "");
+  const userId = id;
+  const isSchool = (id === schoolId || id==="dev");
+
+  let teacherDoc, sectionDoc, rolesDoc;
+  try {
+    [teacherDoc, sectionDoc, rolesDoc] = await Promise.all([
+      getDoc(doc(db, schoolId, "teachers")),
+      getDoc(doc(db, schoolId, "section")),
+      getDoc(doc(db, schoolId, "roles"))
+    ]);
+  } catch (err) {
+    console.error(err);
+    fatal("Could not load the data (" + (err.code || err.message) + "). Check your connection and reload.");
+  }
+  const teachers = teacherDoc.exists() ? teacherDoc.data() : {};
+
+  const sectionData = sectionDoc.exists() ? sectionDoc.data() : {};
+  const roles = rolesDoc.exists() ? (rolesDoc.data().list ?? []) : [];
+
+  let sects = Object.keys(sectionData);
+  if (!isSchool) {
+    const grant = teachers[id]?.adminFunctions?.admins;
+    if (!grant) fatal("You don't have permission to manage admins.");
+    sects = (grant.resources ?? []).filter(s => sectionData[s]);
+  }
+  let classes = [];
+  sects.forEach(sect => { classes = classes.concat(sectionData[sect]?.classes ?? []); });
+
+  /*
+  adminFunctions: each key is something an admin can be allowed to do. `resources` says what it
+  applies to: sections or classes (the lower resources sit inside the sections that contain them).
+  */
+  const adminFunctions = {
+    teachers: { action: "Manage teachers", resources: sects },
+    students: { action: "Manage students", resources: classes },
+    rc: { action: "Manage report cards", resources: classes },
+    admins: { action: "Manage admins", resources: sects },
+    promotion: { action: "Promote students", resources: classes },
+    fm: { action: "Assign form master", resources: sects },
+    ct: { action: "Assign class teacher", resources: sects },
+    session: { action: "Launch academic session" },
+    section: { action: "Manage school sections", resources: sects },
+    subjects: { action: "Manage school subjects", resources: sects },
+    auth: { action: "Authorize teach and sign", resources: classes },
+    monTAS: { action: "Monitor teach and sign", resources: classes },
+    monSA: { action: "Monitor Student Attendance", resources: classes },
+    feesSet: { action: "Fix School Fees" },
+    feesRecord: { action: "Record School Fees", resources: sects },
+    feesView: { action: "View School Fees" },
+    feesDefaulter: { action: "Check School Fees Defaulters", resources: classes },
+    scoresheetConfig: { action: "Configure Scoresheet", resources: sects },
+    rcConfig: { action: "Configure Report Card", resources: sects },
+    otherFees: { action: "Set other fees" },
+    managePsycho: { action: "Manage psychometrics", resources: sects },
+    manageFeesRule: { action: "Manage Fees Rule", resources: sects },
+    roles: { action: "Manage Roles" },
+    cloudBill: { action: "Manage Cloud and Storage Billing" }
+  };
+  // Functions with no resources are only for the school-level account, which gets every section.
+  const visibleFunctions = Object.entries(adminFunctions)
+    .map(([fx, def]) => [fx, def.action, def.resources ?? (isSchool ? sects : null)])
+    .filter(([, , resources]) => resources);
+
+  // ---------- state ----------
+  // admins: id -> { id, data, initial, details, refresh }
+  const admins = new Map();
+  const canon = v => Array.isArray(v) ? [...v].sort().map(canon)
+    : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canon(v[k])])) : v;
+  // An admin is anyone with at least one function; no functions means not an admin.
+  const hasFunctions = a => Object.keys(a?.adminFunctions ?? {}).length > 0;
+  const snapshotOf = a => JSON.stringify(canon({ isAdmin: hasFunctions(a), adminFunctions: a.adminFunctions ?? {}, roles: a.roles ?? [] }));
+  const isChanged = rec => snapshotOf(rec.data) !== rec.initial;
+
+  // Older records may hold adminFunctions as an array or with non-object values, and roles as a non-array.
+  // Those shapes silently defeat change detection (named props on an array are ignored), so normalise first.
+  function normalizeAdmin(a) {
+    const af = a.adminFunctions;
+    if (af == null) a.adminFunctions = {};
+    else if (typeof af !== "object" || Array.isArray(af)) {
+      const keys = Array.isArray(af) ? af : Object.keys(af ?? {});
+      a.adminFunctions = {};
+      keys.forEach(k => { if (typeof k === "string") a.adminFunctions[k] = { action: adminFunctions[k]?.action ?? k }; });
+    } else {
+      Object.keys(af).forEach(k => {
+        if (!af[k] || typeof af[k] !== "object" || Array.isArray(af[k])) af[k] = { action: adminFunctions[k]?.action ?? k };
+        else if (af[k].resources != null && !Array.isArray(af[k].resources)) af[k].resources = [].concat(af[k].resources);
+      });
     }
-  newAdd.onclick = e=> openModal();
-  closeBtn.onclick = e=> closeModal();
+    if (!Array.isArray(a.roles)) a.roles = a.roles ? [].concat(a.roles) : [];
+    return a;
+  }
+
+  const initials = name => String(name).trim().split(/\s+/).slice(0, 2).map(w => w[0] ?? "").join("").toUpperCase() || "?";
+  const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+  const safeChanged = rec => { try { return isChanged(rec); } catch (err) { console.error(err); return true; } };
+  function updateBar() {
+    const n = [...admins.values()].filter(safeChanged).length;
+    saveBar.hidden = n === 0;
+    saveInfo.textContent = n === 1 ? "1 admin with unsaved changes" : `${n} admins with unsaved changes`;
+  }
+
+  function chip(label, checked, onchange) {
+    const l = mk("label", "chip");
+    const box = mk("input");
+    box.type = "checkbox";
+    box.checked = checked;
+    box.onchange = () => onchange(box.checked);
+    l.append(box, mk("span", "", label));
+    return { el: l, box };
+  }
+
+  function buildAdmin(rec) {
+    const a = rec.data;
+    a.roles ??= [];
+    a.adminFunctions ??= {};
+
+    const details = mk("details", "admin");
+    const summary = mk("summary");
+    const avatar = mk("div", "avatar", initials(a.name ?? rec.id));
+    const who = mk("div", "who");
+    const whoName = mk("div", "who-name", a.name ?? rec.id);
+    const changedBadge = mk("span", "badge warn", "Unsaved");
+    whoName.append(changedBadge);
+    who.append(whoName, mk("div", "who-user", "@" + rec.id));
+    const badges = mk("div", "badges");
+    const chev = mk("i", "fas fa-chevron-right chev");
+    summary.append(avatar, who, badges, chev);
+
+    const body = mk("div", "body");
+    body.append(mk("div", "section-label", "Roles"));
+    const rolesEl = mk("div", "chips");
+    if (!roles.length) rolesEl.append(mk("span", "muted", "No roles have been defined yet."));
+    roles.forEach(role => {
+      rolesEl.append(chip(role, a.roles.includes(role), on => {
+        a.roles = on ? [...new Set([...a.roles, role])] : a.roles.filter(r => r !== role);
+        refresh();
+      }).el);
+    });
+    body.append(rolesEl, mk("div", "section-label", "Can…"));
+    const perms = mk("div", "perms");
+    body.append(perms);
+    details.append(summary, body);
+
+    function renderPerms() {
+      perms.innerHTML = "";
+      visibleFunctions.forEach(([fx, action, resources]) => {
+        const current = a.adminFunctions[fx];
+        const card = mk("div", "perm" + (current ? " on" : ""));
+        const head = mk("label", "perm-head");
+        const sw = mk("input", "switch");
+        sw.type = "checkbox";
+        sw.checked = !!current;
+        head.append(sw, mk("span", "", action));
+        card.append(head);
+        sw.onchange = () => {
+          if (sw.checked) a.adminFunctions[fx] = { action };
+          else delete a.adminFunctions[fx];
+          a.isAdmin = hasFunctions(a);
+          renderPerms();
+          refresh();
+        };
+
+        if (current && resources.length) {
+          const uniq = [...new Set(resources)];
+          const chips = mk("div", "chips");
+          const boxes = uniq.map(res => {
+            const c = chip(res, (current.resources ?? []).includes(res), on => {
+              const list = current.resources ??= [];
+              if (on) { if (!list.includes(res)) list.push(res); }
+              else { const i = list.indexOf(res); if (i >= 0) list.splice(i, 1); }
+              refresh();
+            });
+            chips.append(c.el);
+            return { res, box: c.box };
+          });
+          const tools = mk("div", "perm-tools");
+          const all = mk("button", "btn small", "All");
+          const none = mk("button", "btn small", "None");
+          all.type = none.type = "button";
+          all.setAttribute("aria-label", `Select all for ${action}`);
+          none.setAttribute("aria-label", `Clear selection for ${action}`);
+          all.onclick = () => { current.resources = [...uniq]; boxes.forEach(b => b.box.checked = true); refresh(); };
+          none.onclick = () => { current.resources = []; boxes.forEach(b => b.box.checked = false); refresh(); };
+          tools.append(all, none);
+          card.append(chips, tools);
+        }
+        perms.append(card);
+      });
+    }
+
+    function refresh() {
+      try {
+        badges.innerHTML = "";
+        a.roles.forEach(r => badges.append(mk("span", "badge", r)));
+        const n = Object.keys(a.adminFunctions).length;
+        badges.append(mk("span", "badge", `${n} permission${n === 1 ? "" : "s"}`));
+        const changed = safeChanged(rec);
+        changedBadge.hidden = !changed;
+        details.classList.toggle("changed", changed);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        updateBar();
+      }
+    }
+
+    rec.details = details;
+    rec.refresh = refresh;
+    renderPerms();
+    refresh();
+    return details;
+  }
+
+  function addAdminRecord(tid, data, { changed = false } = {}) {
+    const rec = { id: tid, data, initial: "", details: null, refresh: null };
+    // the saved state is whatever was loaded; a newly promoted teacher starts from "not an admin"
+    rec.initial = changed
+      ? snapshotOf({ isAdmin: false, adminFunctions: {}, roles: data.roles ?? [] })
+      : snapshotOf(data);
+    admins.set(tid, rec);
+    return rec;
+  }
+
+  // Teachers this account can see: those in its sections (everyone, for the school account).
+  const teacherList = [];   // { id, data }
+  for (const tid in teachers) {
+    const data = normalizeAdmin(teachers[tid]);
+    if (!isSchool && !(data.sections ?? []).some(s => sects.includes(s))) continue;
+    teacherList.push({ id: tid, data });
+    if (hasFunctions(data)) addAdminRecord(tid, data);
+  }
+
+  // ---------- list ----------
+  function render() {
+    const q = searchEl.value.trim().toLowerCase();
+    const recs = [...admins.values()].sort((x, y) => String(x.data.name).localeCompare(String(y.data.name)));
+    adminsEl.innerHTML = "";
+    let shown = 0;
+    recs.forEach(rec => {
+      if (!rec.details) buildAdmin(rec);
+      const match = !q || String(rec.data.name).toLowerCase().includes(q) || rec.id.toLowerCase().includes(q);
+      rec.details.hidden = !match;
+      if (match) shown++;
+      adminsEl.append(rec.details);
+    });
+    countEl.textContent = recs.length === 1 ? "1 admin" : `${recs.length} admins`;
+    if (!shown) {
+      const e = mk("div", "empty");
+      e.innerHTML = '<i class="fas fa-user-shield"></i>';
+      e.append(mk("div", "", recs.length ? "No admins match your search." : "No admins yet. Add one to get started."));
+      adminsEl.append(e);
+    }
+    updateBar();
+  }
+  searchEl.oninput = render;
+  adminsEl.addEventListener("change", () => setTimeout(updateBar));
+  $("toolbar").hidden = false;
+
+  // ---------- add admin ----------
+  // Candidates are the visible teachers who are not admins yet.
+  function renderCandidates() {
+    const q = $("candSearch").value.trim().toLowerCase();
+    const list = $("candList");
+    list.innerHTML = "";
+    const rows = teacherList.filter(t => !admins.has(t.id) &&
+      (!q || String(t.data.name).toLowerCase().includes(q) || t.id.toLowerCase().includes(q)))
+      .map(t => [t.id, t.data.name])
+      .sort((x, y) => String(x[1]).localeCompare(String(y[1])));
+    if (!rows.length) {
+      list.append(mk("li", "muted", q ? "No teachers match your search." : "Everyone available is already an admin."));
+      return;
+    }
+    rows.forEach(([cid, name]) => {
+      const li = mk("li", "cand");
+      const info = mk("div", "who");
+      info.append(mk("div", "who-name", name ?? cid), mk("div", "who-user", "@" + cid));
+      const btn = mk("button", "btn small primary", "Add");
+      btn.type = "button";
+      btn.onclick = () => promote(cid);
+      li.append(mk("div", "avatar", initials(name ?? cid)), info, btn);
+      list.append(li);
+    });
+  }
+
+  function promote(cid) {
+    const data = teachers[cid];
+    data.adminFunctions ??= {};
+    const rec = addAdminRecord(cid, data, { changed: true });
+    $("addDialog").close();
+    searchEl.value = "";
+    render();
+    rec.details.open = true;
+    rec.details.scrollIntoView({ behavior: "smooth", block: "start" });
+    toast(`${data.name ?? cid} added. Turn on at least one permission, or they won't count as an admin.`, "info");
+  }
+
+  newAddBtn.onclick = () => {
+    $("candSearch").value = "";
+    renderCandidates();
+    $("addDialog").showModal();
+    $("candSearch").focus();
+  };
+  $("candSearch").oninput = renderCandidates;
+  $("addClose").onclick = () => $("addDialog").close();
+  $("addDialog").onclick = e => { if (e.target === $("addDialog")) $("addDialog").close(); };
+
+  // ---------- save / discard ----------
+  saveBtn.onclick = async () => {
+    const changed = [...admins.values()].filter(safeChanged);
+    if (!changed.length) { toast("No changes to save.", "info"); return; }
+    saveBtn.disabled = discardBtn.disabled = true;
+    saveBtn.textContent = "Saving…";
+    try {
+      // Keep the isAdmin flag in step with the functions for every teacher this account can see.
+      teacherList.forEach(t => { t.data.isAdmin = hasFunctions(t.data); });
+      await setDoc(doc(db, schoolId, "teachers"), teachers);
+      const dropped = [];
+      changed.forEach(rec => {
+        if (!hasFunctions(rec.data)) { dropped.push(rec); admins.delete(rec.id); return; }
+        rec.initial = snapshotOf(rec.data); rec.refresh();
+      });
+      if (dropped.length) render();
+      toast(dropped.length
+        ? `Saved. ${dropped.length === 1 ? (dropped[0].data.name ?? dropped[0].id) + " has" : dropped.length + " people have"} no functions, so no longer ${dropped.length === 1 ? "an admin" : "admins"}.`
+        : "Saved!");
+    } catch (err) {
+      console.error(err);
+      toast("Save failed: " + (err.code || err.message) + ". Your changes are still here, so you can try again.", "error");
+    } finally {
+      saveBtn.disabled = discardBtn.disabled = false;
+      saveBtn.textContent = "Save changes";
+      updateBar();
+    }
+  };
+
+  discardBtn.onclick = async () => {
+    const ok = await confirmDialog({
+      title: "Discard changes?",
+      body: "All unsaved changes to admins will be lost.",
+      confirmText: "Discard",
+      danger: true
+    });
+    if (ok) window.location.reload();
+  };
+
+  window.addEventListener("beforeunload", e => {
+    if (!saveBar.hidden) { e.preventDefault(); e.returnValue = ""; }
+  });
+
+  newAddBtn.disabled = false;
+  render();
   </script>
 </body>
 </html>

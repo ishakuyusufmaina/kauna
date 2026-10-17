@@ -4,31 +4,35 @@
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="../config.js"></script>
-  
+  <script src="../config.js"></script>
   <script src="../batch2.js"></script>
+  
+  <!-- Include this in the <head> of your HTML -->
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <script src="rc/rc.js"></script>
+  <title>KAUNA PRIVATE SCHOOL - TERMINAL REPORT CARDS</title>
+  
 
-
-  <title>Position</title>
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../brand-print.css">
 </head>
 <body>
   <h1 class="no-print">
-    Report Cards
+    Report Cards <br>
+    <a href="#print">Down &darr;</a>
   </h1>
      <div class="select-container no-print">
    <select id="sessionSelect">
     <option> -select session- </option>
   </select>
   <select id="classSelect">
-    <option value=""> -select class- </option>
-    
+    <option value=""> [select class] </option>    
   </select>
   
   
   </div>
-  
-  <div id="container">
-    
+    <div id="container">    
   </div>
   
 
@@ -41,17 +45,23 @@
   import {getFirestore, doc, setDoc, getDoc} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
   import {getAuth, signOut, onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
      // import {getDatabase, set, ref, onValue, child, get } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
-
-  
-
+/*const firebaseConfig = {
+  apiKey: "AIzaSyCm_DSZaYVQCt0ubBwRkE9nOTryJayxH0w",
+  authDomain: "school-in-the-box.firebaseapp.com",
+  projectId: "school-in-the-box",
+  storageBucket: "school-in-the-box.firebasestorage.app",
+  messagingSenderId: "596350496353",
+  appId: "1:596350496353:web:84c66c351700ddf0824420",
+  measurementId: "G-3MGCDH4FRF"
+};*/
 
       const app = initializeApp(firebaseConfig);
       const analytics = getAnalytics(app);
       const auth = getAuth(app);
     const db = getFirestore(app);
 
-//  const schoolId = "alhidayah";
-//  const schoolName =  "Salim Global Integrated Academy Maiduguri"
+//  const schoolId = "capital";
+ // const schoolName = "Maiduguri Capital School"
   class StdList extends Array {
   constructor() {
     super();
@@ -111,42 +121,99 @@
   
 let sectionRef = doc(db, schoolId, "section");
   let sectionDoc = await getDoc(sectionRef);
+let teachersDoc = await getDoc(doc(db, schoolId, "teachers"));
+  const sections = sectionDoc.data();
 
-
-  
+  let user = auth.currentUser;
+  let id = user.email.replace(/@.*/, "");
+   let hos = teachersDoc.data()[id];
+ // const sections = {};
+  var srp; //subject religion profile
+  var scoreInterpretations;
+  var averageInterps;
+  var scoreSheetConfig;
+  var scoremeta;
+  var predefinedAsms;
+  var useDerivedAsm;
+     var sectSubjs =[];
    if (sectionDoc.exists()){
-   let sections = sectionDoc.data();
+   let sects = sectionDoc.data();
      
-   let keys = Object.keys(sections);
+   let keys = Object.keys(sects);
    
-   keys.forEach(key=>{
-       let optG = document.createElement("optgroup");
+   /*keys.forEach(key=>{
+     if (!hos.role.hos.sections.includes(key)) return;
+       sections[key] =  sects[key];
+     let optG = document.createElement("optgroup");
        optG.label = key;
-       let classes = sections[key].classes;
+       let classes = sects[key].classes;
        classes.forEach(clas=>optG.innerHTML +=`<option>${clas}</option>`);
        classSelect.append(optG);
-   });
+   });*/
+     hos.adminFunctions.rc.resources.forEach(clas=>classSelect.innerHTML +=`<option>${clas}</option>`);
+
 
  }
   
-  async function loadStudents() {
-   
+  async function loadStudents() {   
     let clas = key(classSelect.value);
     let session = key(sessionSelect.value);
     if (!(clas && session)) return null;
+    let smRef = doc(db, schoolId, session, clas, "scoremeta");
+    let scoremetaDoc = await getDoc(smRef);
+    scoremeta = scoremetaDoc.exists()? scoremetaDoc.data() : {};
+    //console.log(JSON.stringify(scoremeta));
+    let sectK=""; //= classSelect.selectedOptions[0].parentElement.label;
+    for (const sect in sections){
+    //  console.log(sections[sect].classes, clas);
+      sections[sect].classes = sections[sect].classes.map(c=>c.trim());
+      if (sections[sect].classes.includes(classSelect.value)) {
+        sectK = sect;
+        console.log(sect);
+        break;
+      }
+    }
+    
+   console.log(sectK);
+    srp = sections[sectK].srp;
+    scoreInterpretations = sections[sectK].scoreInterpretations;
+    scoreSheetConfig = sections[sectK].scoreSheetConfig;
+    let assessments = scoreSheetConfig.assessments??[{name: "CA", subtotal: 30}];
+    averageInterps = sections[sectK].averageInterpretations??{};
+    console.log(averageInterps);
+    console.log(JSON.stringify(assessments));
+    sectSubjs = sections[sectK].subjects;
+    predefinedAsms = [];
+    useDerivedAsm = sections[sectK].useDerivedAsm;
+    scoreSheetConfig.derivedAsms??=[]
+    if (sections[sectK].useDerivedAsm && scoreSheetConfig.derivedAsms.length) {
+      scoreSheetConfig.derivedAsms.forEach(dasm=>{
+         dasm.subtotal = 0;
+         dasm.derivatives.forEach(d=>    {
+           console.log(d);
+          dasm.subtotal +=Number(assessments.find(a=>a.name==d).subtotal)
+          
+        });
+        predefinedAsms.push(dasm);
+      })
+      
+    } else {
+      predefinedAsms = assessments;
+    }
+    //console.log(JSON.stringify(predefinedAsms));
 
+    
+    //console.log(srp);
     let stdsRef = doc(db, schoolId, session, clas, "students");
     let stdsDoc = await getDoc(stdsRef);
-    if (stdsDoc.exists()){
+    if (stdsDoc.exists()){     
       students = Object.values(stdsDoc.data());
-      console.log(JSON.stringify(students));
+     // console.log(JSON.stringify(students));
       
       //return students
       
     } else
     students = null;
-    
-    
     
     function key(token){
       return token.replaceAll(" ","").replaceAll("/", "").replaceAll(",", "");
@@ -164,57 +231,95 @@ let sectionRef = doc(db, schoolId, "section");
   
   async function loadPositions(){
     container.innerHTML = "";
-      //document.getElementById("table-body").innerHTML = "";
-      await loadStudents();
+    await loadStudents();
     if (!students) return;
+    //selected session index
     let ssi = sessionSelect.selectedIndex;
-    let termIndex = sessionSelect.options[ssi].getAttribute("data-term");
- // alert(termIndex);
+    let termIndex = Number(sessionSelect.options[ssi].getAttribute("data-term"));
     let stdList = new StdList();
-    let subHeads = new Set();
-   
-    students.forEach(student=>{
-       
+    let subHeads = new Set();   
+    //prepare each student for positioning.
+    students.forEach(student=>{     
+      //console.log(student.name);      
       student.score=0;
-      student.sc = 0;
+      student.sc = 0; //subject count
       let subjects = student.subjects;
-      
-      for (const subj in subjects) {
-        
-        console.log(JSON.stringify(subjects[subj]))
+     // console.log(JSON.stringify(subjects));
+      let stdReg = student.religion;
+      if (!stdReg) {
+        //mixed school? report card => error
+      }
+      let faith = stdReg == "Islam"? "Muslim" : "Christian";
+      for (const subj in subjects) {     
+        if (subj=="Askar" && Number(termIndex)==2){
+			console.log(subjects[subj]);
+			if (Number(subjects[subj][termIndex]["1st CA"]?.replace("-", 0) || 0) + Number(subjects[subj][termIndex]["exam"]?.replace("-", 0) || 0)){
+				subjects["Hisab"][termIndex] = subjects[subj][termIndex];
+				subjects["Hisab"][termIndex].subject = "Hisab";
+				
+			}
+			delete subjects[subj]; 
+			let termAverages = student.termAverages || [];
+			let average = termAverages.filter(average=>average.termIndex == termIndex)[0];
+			if (average) average.subjectCount--;
+			continue;
+	  }   
+        let sN = subjects[subj][termIndex].subject;
+        if (subjects[subj][termIndex].inactive){
+          delete subjects[subj];
+          console.log(5555555555);
+          continue;
+        }        
+      //  console.log(sN);        
+        if (!sectSubjs.includes(sN)){//subj not in the section subjects
+          delete subjects[subj];
+          continue;
+         // console.log(subj, "deleted out");
+          
+        }          
+        if (srp[sN]) {
+          //if the srp of the subj is not as of the faith of the student, delete the subject among the student's subjects
+          if (!(srp[sN]==faith))
+          delete subjects[subj];
+        }
         try {
-          let test1 = Number(subjects[subj][termIndex].test1 ?? 0);
-          let test2 = Number(subjects[subj][termIndex].test2 ?? 0)
-         let test3 = Number(subjects[subj][termIndex].test3 ?? 0)
+          let termScores = subjects[subj][termIndex];
+          let score = 0;
+          let asms = scoreSheetConfig.assessments??[{name: "CA", subtotal: 30}];
+          asms.forEach(a=>{
+            let k = a.name.toLowerCase();
+            score += Number(termScores[k].replace("-", "0"))
+        })
           
-          student.score += test1 + test3 + test2 + Number(subjects[subj][termIndex].exam);
+          student.score += score + Number(subjects[subj][termIndex].exam.replace("-", "0"));
+          subHeads.add(subjects[subj][termIndex].subject);
           student.sc++;
-          subHeads.add(subjects[subj][termIndex].name);
-          
         } catch(e) {
-          console.log(subj + "is  not recorded for", student.name);
+          console.error(e.message);
+          //console.log(subj + "is  not recorded for", student.name);
         }
       }
-      stdList.push(student);
     })       
-    console.log(JSON.stringify(stdList));
-    stdList.forEach(std=>{
+   // position students
+    assignPositions(students);
+    //present each students' rc
+    students.forEach(std=>{
+     // console.log(std.religion);
+      let interp = interpret(std.score/std.sc, scoreInterpretations);
+      const g = interp.grade? interp.grade : grade(0, std.score/std.sc)
+  
+      let cls = classSelect.value.toLowerCase()[0];      
       let reportCard = document.createElement("table");
       reportCard.innerHTML = `
-         <caption>
+      <caption>
       <header>
-      
-      <h2>${schoolName}</h2>
-    
+      <h2>${schoolName.toUpperCase()}</h2>
       <address>
-      BULUNKUTU ABUJA, MAIDUGURI, BORNO STATE
-      <br>
-      <i>kaunaschool@gmail.com</i>
+       ${schoolAddress}<br><i>${schoolEmail}</i>
       </address>
       </header>
       <div id="logo-container">
-      
-      
+
 
       <div id="top-hl">
       </div>
@@ -223,75 +328,161 @@ let sectionRef = doc(db, schoolId, "section");
       <img class="logo" src="../logo.jpg">
       </div>
       <h3>TERMINAL REPORT</h3>
-      <table class="student-info-table">
-      <tr class="std-name">      
+          <table class="student-info-table">
+      
+      <tr class="std-name">          
         <td>NAME: ${std.name.toUpperCase()}</td>
-        <td>GENDER: ${std.gender}</td>
+        <td>GENDER: ${std.gender.toUpperCase()}</td>
       </tr>
       <tr>
-      <td>TERM: 3<sup>nd</sup></td>
+      <td>TERM: ${sessionSelect.value.split(",")[1].toUpperCase()}</td>
       <td>CLASS: ${classSelect.value}</td>
       </tr>
       <tr>    
       <td>SESSION: ${sessionSelect.value.split(",")[0]}</td>
-      <td>RESUMPTION: <strong><time>7<sup>th</sup> SEPTEMBER, 2026</time></strong></td>
+      <td>RESUMPTION: <strong><time>${resumptionDate || "______________"}</time></strong></td>
       </tr>
       <tr>
-      <td >NO: IN CLASS: ${students.length}</td>      
-      <td style="font-weight: bolder">POSITION: ${toSuperscriptOrdinal(Number(std.position))}</td>
+      <td>TERM GRADE: ${g}</td>
+      <td class="cGrade"></td>   
+	  <td class="cPosition"></td>
       </tr>
-      </table>   
+      </table> 
       </caption>
-         <tr>
-          <th>Subject</th>
-          <th>CA</th>
-          <th>Exam</th>
-          <th>Total</th>
-          <th>Grade</th>
-          <th>Remark</th>
-        </tr>
+      <tr>
+      <th>SUBJECT</th>${
+          getAsmHeads(predefinedAsms, scoreSheetConfig.exam)
+      }
+      <!--th>POS</th-->
+      <th>GRADE</th>
+      <th>REMARK</th>
+      </tr>
       `;
-      let subjects = std.subjects;
-      let subKeys = Object.keys(subjects).sort().reverse();
-      //for (const subj in subjects) {
-      subKeys.forEach(subj=>{
+     
+      let subjects = std.subjects??{};
+    //  console.log(JSON.stringify(subjects));
+      let subjKeys = Object.keys(subjects).sort();
+      let stdReg = std.religion;
+      if (!stdReg) {
+     // alert("STUDENT " + std.name + "NRS"); 
+     // return;
+      }
+      let faith = stdReg == "Islam"? "Muslim" : "Christrian";
+ 
+      //for (const subj in subjects) 
+      subjKeys.forEach(subj=>{
+        //score of the currrent term
+        let total = 0;
+        let asms = scoreSheetConfig.assessments??[{name: "CA", subtotal: 30}];
+        let termScores = subjects[subj][termIndex];
+        let scores = predefinedAsms.map(a=>{
+          let score;
+          let k = a.name.toLowerCase();
+          if (a.derivatives){
+            score = 0;
+            a.derivatives.forEach(d=>{
+              k = d.toLowerCase();
+              score += Number(termScores[k].replace("-", 0));
+            })
+          } else {
+            score = termScores[k];
+          }
+          return score;
+        })
+        asms.forEach(a=>{
+          let k = a.name.toLowerCase();
+          total += Number(termScores[k].replace("-", "0"))
+        })
+        let exam = Number(termScores.exam.replace("-", "0"))
+        total += exam; // Number(termScores.exam.replace("-", "0"))
         
-      let t1= Number(subjects[subj][termIndex].test1 ?? 0);
-      let t2 = Number(subjects[subj][termIndex].test2 ?? 0);
-      let t3 = Number(subjects[subj][termIndex].test3 ?? 0);
+      //  console.log(total);
+        let t1= Number(subjects[subj][termIndex].test1 ?? 0);
+        let t2 = Number(subjects[subj][termIndex].test2 ?? 0);
+        let t3 = Number(subjects[subj][termIndex].test3 ?? 0);
+        //let score = t1 + t2 +t3 + Number(subjects[subj][termIndex].exam);
+        let interp = interpret(total, scoreInterpretations);
         
-        //     subjects.forEach(subj=>{
+       // console.log(interp);
+ //     subjects.forEach(subj=>{
         let row =document.createElement("tr");
         row.innerHTML = `
-        <td>${subjects[subj][termIndex].name}</td>
-        <td>${t1 + t2 +t3}</td>
-        <td>${subjects[subj][termIndex].exam}</td>
-        <td>${t1 + t2 + t3 + Number(subjects[subj][termIndex].exam)}</td>
-        <td>${grade(t1+t2+t3, Number(subjects[subj][termIndex].exam))}</td>
-        <td>${remark(t1+t2+t3, Number(subjects[subj][termIndex].exam))}</td>
+        <td>${subjects[subj][termIndex].subject.toUpperCase()}</td>
+        ${
+        getScores(scores)
+        }
+        <td>${exam}</td>
+        <td>${total}</td>
+        <!--td>${(scoremeta[subj]??{students:[{id: std.id, position: "-"}]}.students.find(s=>s.id==std.id)).position}</td-->
+        <td>${interp.grade? interp.grade : grade(0, total) /*grade(t1+t2+t3, Number(subjects[subj][termIndex].exam))*/}</td>
+        <td>${interp.remark? interp.remark : remark(0, total) /*remark(t1+t2+t3, Number(subjects[subj][termIndex].exam))*/}</td>
         
         `;
         reportCard.appendChild(row);
       });
       
+      const comnt = comment(std.score/std.sc, averageInterps);
       
-      const comnt = remark(std.score/std.sc, 0); //comment(std.score/std.sc, averageInterps);
-       
       let wrapper = document.createElement("div");
       let hr = document.createElement("hr");
       wrapper.className = "table-container";
       //wrapper.innerHTML = '<img class="stamp" src="../../stamp.jpg">'
-      wrapper.appendChild(reportCard);
+      let psychoElm = document.createElement("table");
+      let txt = "";
+      let domains = sections[std.section]?.psychometrics;
+      console.log(domains, std.section);
+      
+     /* domains.forEach(d=>{
+        let r = psychoElm.insertRow();
+        let dC = r.insertCell();
+        std.psychometrics[d]??=0;
+        let measure = std.psychometrics[d];
+        dC.innerHTML = d;
+        let mC = r.insertCell();
+        mC.innerHTML = measure+"/5";
+      //  txt +=`<li>${d} - ${measure}/5</li>`;
+      });*/
+      let psychoCont = document.createElement("table");
+      psychoCont.innerHTML = `
+      <h3>Behaviour and Activities</h3>
+      `;
+    //  psychoCont.append(psychoElm);
+    
+      wrapper.append(reportCard);
+      
       let p = document.createElement("p");
       p.innerHTML = `
       TOTAL SCORE: ${std.score}<br>
-      AVERAGE SCORE: ${tosf(std.score/std.sc, 4)}
+      <span class="average-container"><span>TERM AVERAGE: ${tosf(std.score/std.sc, 4)}</span> <span class="cumAverage"></span></span>
       <br>
       
       COMMENT: <strong class="comment">${comnt}</strong>
     <img id="stamp" src="stamp.png">
       `;
       wrapper.append(p);
+	  console.log(std.name, std.id);
+	  if (termIndex==2){
+		let avElm = p.querySelector(".cumAverage");
+		console.log(std.termAverages);
+		std.termAverages ??=[];
+		 reportCard.querySelector(".cPosition").innerHTML = "CUMM. POSITION: " + toSuperscriptOrdinal(std.position);
+	  if (!std.termAverages.filter(average=>average.termIndex==termIndex).length){
+			std.termAverages.push({termIndex, totalScore: std.score, subjectCount: std.sc});
+	    }
+		let totalTermsScore = 0;
+		let totalSubjCount = 0;
+		
+		std.termAverages.forEach((s, i)=>{
+			totalTermsScore+=s.totalScore; 
+			totalSubjCount+=s.subjectCount;
+			console.log(i, s.totalScore, s.subjectCount);
+			
+		});
+		avElm.innerHTML = "CUMMULATIVE AVERAGE: "+tosf(totalTermsScore/totalSubjCount, 4);
+		let interp = interpret(totalTermsScore/totalSubjCount, scoreInterpretations);
+		const g = interp.grade? interp.grade : grade(0, totalTermsScore/totalSubjCount);
+		reportCard.querySelector(".cGrade").innerHTML = "CUMM. GRADE: "+ g;
+	  }
       p.classList.add("rfooter");
       p = document.createElement("p");
       p.innerHTML = `
@@ -302,9 +493,6 @@ let sectionRef = doc(db, schoolId, "section");
       p.classList.add("powered");
       container.append(hr, wrapper);
     });
-    
-    
-    
     
     function remark(test, exam){
       let total = test+exam;
@@ -330,7 +518,6 @@ let sectionRef = doc(db, schoolId, "section");
         else if (total <= 59 ) {grade="C"}
         else if (total <= 69 ) {grade="B"}
         else grade = "A";
-        
           
           return grade;
     }
@@ -340,16 +527,108 @@ let sectionRef = doc(db, schoolId, "section");
   
   
   
+   function assignPositions(students) {
+  // Defensive: ensure score and sc numeric
+  students.forEach(s => {
+    s.totalTermsScore =0;
+	s.totalSubjCount =0;
+	console.log(s);
+	s.termAverages?.forEach((score, i)=>{
+		s.totalTermsScore+=score.totalScore; 
+		s.totalSubjCount+=score.subjectCount;	
+		console.log(score);
+	});
+	
+    
+  });
+
+  // Compute average guardedly (students with sc===0 go to the end)
+  students.sort((a, b) => {
+    const aAvg = a.totalSubjCount > 0 ? (a.totalTermsScore / a.totalSubjCount) : -Infinity;
+    const bAvg = b.totalSubjCount > 0 ? (b.totalTermsScore / b.totalSubjCount) : -Infinity;
+    // sort descending by average, and if tie, fall back to total score descending
+    if (bAvg === aAvg) return Number(b.totalTermsScore) - Number(a.totalTermsScore);
+    return bAvg - aAvg;
+  });
+
+  // Assign positions with tie-handling using tolerance
+  const EPS = 1e-9;
+  let currentPosition = 0;
+  let lastAvg = null;
+  let lastPositionAssigned = 0;
+
+  students.forEach((student, idx) => {
+    currentPosition = idx + 1;
+    const avg = student.totalSubjCount > 0 ? student.totalTermsScore / student.totalSubjCount : -Infinity;
+
+    if (lastAvg !== null && Math.abs(avg - lastAvg) <= EPS) {
+      // tie -> same position as previous
+      student.position = lastPositionAssigned;
+    } else {
+      student.position = currentPosition;
+      lastPositionAssigned = currentPosition;
+      lastAvg = avg;
+    }
+
+    // Link prev/next for convenience (clear first to avoid stale refs)
+    student.prev = students[idx - 1] || null;
+    student.next = students[idx + 1] || null;
+  });
+}
+  
+  
   
 /*  print.onclick = e=>{
     alert();
     window.print();
   }*/
   
+  
+  
+  
+  
+  
+  function getAsmHeads(asms, examTotal){
+    /*
+    [{name, subtotal}, ..]
+    examTotal
+    */
+    let total = Number(examTotal);
+    let txt =""
+    asms.forEach(a=>{
+      txt += `<th>${a.name} (${a.subtotal})</th>`;
+      total +=Number(a.subtotal);
+    })
+    txt += `<th>Exam (${examTotal})</th><th>Total (${total})</th>`;
+    return txt;
+  }
+  
+  function getScores(scores){
+    /*
+    */
+   
+    let txt =""
+    scores.forEach(score=>{
+      txt += `<td>${score}</td>`;     
+    })
+    return txt;
+  }
+  
+  
   function tosf(num, sf) {
   if (num === 0) return 0;
   return Number(num.toPrecision(sf));
      }
+  
+  function comment(average, interpsModel){
+    for (const interp of interpsModel){
+      if (Number(average) < Number(interp.range))
+        return interp.comment;
+    }
+    
+    let lastInterp = interpsModel[interpsModel.length-1];
+    return lastInterp?.comment || '';
+  }
   
   
   function toSuperscriptOrdinal(num) {
@@ -373,7 +652,7 @@ let sectionRef = doc(db, schoolId, "section");
   </script>
   
 <style>
-   /* Apply handwriting font to a class or the body */
+  /* Apply handwriting font to a class or the body */
 .comment {
   font-family: 'Patrick Hand', cursive;
   font-size: 1.5rem; /* adjust as needed */
@@ -401,19 +680,19 @@ let sectionRef = doc(db, schoolId, "section");
 
      .student-info-table.std-name {
     
-      border-top: 1px solid black;
+      border-top: 1px solid #6a0822;
        border-top-radius: 25px;
    }
 .std-name,  .std-name > th{
     background: white;
-    color: black;
+    color: #2f2d33;
     
   }
 
   .std-name>td {
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid #6a0822;
     background-color: white;
-    color:black;
+    color:#2f2d33;
     font-weight: bolder;
     text-align: center;
         
@@ -424,7 +703,7 @@ let sectionRef = doc(db, schoolId, "section");
 
   
   .rfooter {
-     border-bottom: 1px solid black;
+     border-bottom: 1px solid #6a0822;
   }
   .powered {
     postion: absolute;
@@ -444,12 +723,11 @@ let sectionRef = doc(db, schoolId, "section");
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   //box-shadow: 0 4px 20px rgba(0,0,0,0.1);
    
-   margin: auto;
- }
+}
 
  th,
 td {
-  border: 1px solid #ddd;
+  border: 1px solid #870b2d;
   padding: 6px;
   text-align: center;
 }
@@ -462,8 +740,8 @@ table th:first-child {
 .vertical-header-table .thead th.subject {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  background: #004080;
-  color: white;
+  background: #ece9e6;
+  color: #870b2d;
   height: 150px;
   vertical-align: center;
   text-transform: uppercase;
@@ -485,8 +763,8 @@ table th:first-child {
 }
 
  tbody tr:hover {
-  background-color: #eef;
-   color: black;
+  background-color: #f7f6f4;
+   color: #2f2d33;
 }
 
   body {
@@ -504,15 +782,15 @@ table th:first-child {
   
       button {
       padding: 6px 12px;
-      background-color: #333;
-      color: #fff;
-      border: none;
+      background: #f6e8ec; border: 1px solid #e8cdd5;
+      color: #870b2d;
+      
       border-radius: 4px;
       cursor: pointer;
     }
 
     button:hover {
-      background-color: #555;
+      background-color: #842742;
     }
 
     table {
@@ -523,15 +801,9 @@ table th:first-child {
 
     th, td{
       padding: 2px;
-      border: 1px solid #007dbb;
+      border: 1px solid #870b2d;
       text-align: center;
     }
-  th {
-    max-width: 100px;   /* adjust size */
-  white-space: nowrap;
-  overflow: hidden;
-//  text-overflow: ellipsis;
-  }
  h1, .save-container {
  //   display: inline-block;
 text-align: center;
@@ -568,8 +840,8 @@ text-align: center;
 }
   
   .logo {
-   border-radius: 50%;
-    height: 130px;
+   // border-radius: 50%;
+    height: 100px;
     width:100px;
   position: relative;
    
@@ -592,12 +864,12 @@ text-align: center;
   #logo-container {
    // height: 120px;
  //   width: 100%;
-   // border-bottom: 1px solid black;
+   // border-bottom: 1px solid #6a0822;
     position: relative;
   }
   
   #top-hl, #bottom-hl {
-    border: 8px solid #b12449;
+    border: 8px solid #870b2d;;
     position: absolute;
     width: calc(100%);
     left: 0;
@@ -617,22 +889,21 @@ text-align: center;
   #bottom-hl {
  
     position: absolute;
-    
+    width: calc(100%);
     left: 0;
     bottom: 20px;
   }
   
   tr:nth-child(1) {
    // padding: 0.7rem;
-     // background-color: #007dbb;
+     // background-color: #9c3150;
     //  color: #fff;
       border: none;
       border-radius: 5px;
       font-size: 1rem;
   }
 .table-container {
-  border: 2px solid #b12449;
-  margin: auto;
+  border: 2px solid #870b2d;;
 }
   @media print {
     hr {
@@ -646,7 +917,7 @@ text-align: center;
     }
     
     .table-container > * {
-    //  color: black;
+    //  color: #2f2d33;
       //text-transform: uppercase;
     }
 
@@ -667,7 +938,6 @@ text-align: center;
     table {
   border-collapse: collapse;
   width: 100%;
-      margin: auto;
 }
 
 table th, table td {
@@ -694,16 +964,21 @@ table tr:nth-child(odd) {
   .n, .c {
     display: none;
   }
-    
   
-  h2 {
-    font-weight; bolder;
-    font-size: 30px;
+  .average-container {
+  display: flex;
+  margin-to: 4px;
+  justify-content: space-evenly;
   }
   
-  .student-info-table {
-    text-transform: uppercase;
-  }
+  
+   table, .table-container, .table-container > *{
+      margin: auto;
+    }
+	
+	.cPosition {
+		font-weight: bolder;
+	}
   </style>
 </body>
 </html>

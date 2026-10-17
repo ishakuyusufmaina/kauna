@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migrate Students to Master Records</title>
+<script src="../config.js"></script>
+<script src="../batch2.js"></script>
+<style>
+  :root { --brand:#870b2d; --bg:#f7f6f4; --card:#fff; --line:#ece9e6; --text:#333; --ok:#2e7d32; --warn:#b26a00; --err:#c62828; }
+  
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); color:var(--text); }
+  header { background:#f7f6f4; color:var(--brand); border-bottom:1px solid #e7e4e1;border-top:3px solid var(--brand); padding:16px 20px; position:sticky; top:0; z-index:5; }
+  header h1 { margin:0; font-size:1.2rem; }
+  main { max-width:1000px; margin:0 auto; padding:20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:18px; }
+  label { display:block; margin:10px 0 4px; font-weight:600; }
+  select { width:100%; max-width:380px; padding:9px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px; }
+  button { padding:10px 20px;  border-radius:8px; font-weight:700; color:#870b2d; background: #f6e8ec; border: 1px solid #e8cdd5; cursor:pointer; }
+  button.danger { background:#d32f2f; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .note { font-size:.9rem; opacity:.85; line-height:1.5; }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); }
+  .wrap { overflow-x:auto; }
+  #log { white-space:pre-wrap; font-family:Consolas,monospace; font-size:.82rem; max-height:340px; overflow:auto; background:rgba(0,0,0,.05); padding:10px; border-radius:8px; }
+  .ok { color:var(--ok); } .warn { color:var(--warn); } .err { color:var(--err); }
+  #msg { font-weight:600; }
+</style>
+
+  <!-- Kauna brand theme -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../brand.css">
+</head>
+<body>
+<header><h1>Migrate students: working copy &rarr; master records</h1></header>
+<main>
+  <div class="card">
+    <p class="note">
+      For every class in the chosen session this reads
+      <code>{school}/{session}/{class}/students</code> and creates a master record at
+      <code>{school}/db/students/{id}</code> in the format <code>admin/class.html</code> uses.
+      Students whose id is missing or is a temporary one (e.g. <code>std3</code>) are issued a real id
+      (<code>yy/yy/term/number</code>) and re-keyed in the working copy, exactly as <code>class.html</code> does.
+      Classes are processed one at a time, each in its own batch, and finished classes are remembered in this browser
+      so an interrupted run carries on where it stopped.
+      Existing master records are never overwritten, so the page is safe to run again.
+      Do not use the class, students or score-sheet pages while it runs.
+    </p>
+    <p id="msg">Checking sign-in&hellip;</p>
+
+    <label for="sessionSelect">Session to migrate (normally the current one)</label>
+    <select id="sessionSelect" disabled></select>
+
+    <label><input type="checkbox" id="dry" checked> Dry run (report only, write nothing)</label>
+    <label><input type="checkbox" id="ignoreCache"> Ignore saved progress (re-check every class)</label>
+    <p class="note" id="cacheInfo"></p>
+
+    <div class="row">
+      <button id="runBtn" disabled>Run</button>
+      <button id="clearBtn" class="danger" type="button">Clear saved progress</button>
+    </div>
+  </div>
+
+  <div class="card wrap" id="summaryCard" hidden>
+    <table>
+      <thead><tr><th>Class</th><th>Students</th><th>Masters created</th><th>New ids issued</th><th>Already existed</th><th>Skipped</th><th>Status</th></tr></thead>
+      <tbody id="summary"></tbody>
+    </table>
+  </div>
+
+  <div class="card"><div id="log">Log will appear here.</div></div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getFirestore, writeBatch, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const terms = ["first term", "second term", "third term"];
+const ID_RE = /^\d{2}\/\d{2}\/\d+\/\d+$/;      // yy/yy/term/seq, as issued by class.html
+const MAX_BATCH = 490;                          // Firestore limit is 500 writes per batch
+
+const $ = id => document.getElementById(id);
+
+// getDoc that retries and fails loudly instead of hanging forever
+const read = async (ref, label, tries = 3) => {
+  for (let i = 1; i <= tries; i++) {
+    try {
+      return await Promise.race([
+        getDoc(ref),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 30000))
+      ]);
+    } catch (e) {
+      const why = e.message === "timeout" ? "no response in 30s" : (e.code || e.message);
+      if (i === tries) throw new Error(`Could not read ${label} after ${tries} attempts (${why}). Check your connection and Firestore rules.`);
+      log(`Read of ${label} failed (${why}) - retrying (${i}/${tries - 1})...`, "warn");
+      await new Promise(r => setTimeout(r, 2000 * i));
+    }
+  }
+};
+window.addEventListener("unhandledrejection", e => log("ERROR: " + (e.reason?.message || e.reason), "err"));
+window.addEventListener("error", e => log("ERROR: " + e.message, "err"));
+const key = t => t.replaceAll(" ", "").replaceAll("/", "").replaceAll(",", "");  // same as class.html
+const docId = id => id.replaceAll("/", "_");
+
+function log(text, cls = "") {
+  const line = document.createElement("div");
+  if (cls) line.className = cls;
+  line.textContent = text;
+  if ($("log").dataset.started !== "1") { $("log").textContent = ""; $("log").dataset.started = "1"; }
+  $("log").appendChild(line);
+  $("log").scrollTop = $("log").scrollHeight;
+}
+
+let sessions = [];
+let sections = {};
+
+// ---- auth: only the main admin account (id == schoolId) may run this ----
+onAuthStateChanged(auth, async user => {
+  if (!user) { location.href = "../signin.html"; return; }
+  const id = user.email.replace(/@.*/, "");
+  if (id !== "dev") {
+    $("msg").textContent = "Only the main admin account can run this migration.";
+    $("msg").className = "err";
+    return;
+  }
+  $("msg").textContent = "Signed in as " + id + ".";
+  await init();
+});
+
+async function init() {
+  const sDoc = await getDoc(doc(db, schoolId, "sessions"));
+  if (!sDoc.exists()) { $("msg").textContent = "No sessions found."; $("msg").className = "err"; return; }
+  sessions = sDoc.data().sessions.sort((a, b) => b.no - a.no);
+  sessions.forEach((s, i) => {
+    const o = document.createElement("option");
+    o.value = i;
+    o.textContent = s.year + ", " + terms[s.term] + (i === 0 ? "  (current)" : "");
+    $("sessionSelect").appendChild(o);
+  });
+  const secDoc = await getDoc(doc(db, schoolId, "section"));
+  sections = secDoc.exists() ? secDoc.data() : {};
+  $("sessionSelect").disabled = false;
+  $("runBtn").disabled = false;
+  showCacheInfo();
+}
+
+function sectionOf(cls) {
+  let found = null;
+  for (const sect in sections) {
+    if ((sections[sect].classes || []).map(key).includes(key(cls))) found = sect;
+  }
+  return found;
+}
+
+function cleanGender(g) {
+  g = (g ?? "").toString().trim();
+  return g === "-select gender-" ? "" : g;
+}
+
+$("dry").onchange = () => {
+  $("runBtn").className = $("dry").checked ? "" : "danger";
+  $("runBtn").textContent = $("dry").checked ? "Run" : "Run and WRITE";
+};
+
+$("runBtn").onclick = async () => {
+  const dry = $("dry").checked;
+  if (!dry && !confirm("This will write master records and update class working copies. Continue?")) return;
+  $("runBtn").disabled = true;
+  $("sessionSelect").disabled = true;
+  $("summary").innerHTML = "";
+  $("summaryCard").hidden = false;
+  $("log").dataset.started = "0";
+  try {
+    await migrate(dry);
+  } catch (e) {
+    console.error(e);
+    log("FAILED: " + (e.message || e), "err");
+  }
+  $("runBtn").disabled = false;
+  $("sessionSelect").disabled = false;
+};
+
+// ---- progress cache (per session, per browser) ----
+const cacheKeyFor = sk => `migrateStudents:${schoolId}:${sk}`;
+const loadCache = sk => { try { return JSON.parse(localStorage.getItem(cacheKeyFor(sk))) || { done: {} }; } catch { return { done: {} }; } };
+const saveCache = (sk, c) => { try { localStorage.setItem(cacheKeyFor(sk), JSON.stringify(c)); } catch {} };
+
+function currentSession() { return sessions[Number($("sessionSelect").value)]; }
+function currentSessionKey() { const s = currentSession(); return s ? key(s.year + terms[s.term]) : null; }
+
+function showCacheInfo() {
+  const sk = currentSessionKey();
+  if (!sk) return;
+  const n = Object.keys(loadCache(sk).done).length;
+  $("cacheInfo").textContent = n ? `${n} class(es) already migrated in this browser will be skipped.` : "No saved progress for this session.";
+}
+$("sessionSelect").onchange = showCacheInfo;
+$("clearBtn").onclick = () => {
+  const sk = currentSessionKey();
+  if (sk && confirm("Forget which classes were finished for this session? (Nothing in the database changes.)")) {
+    localStorage.removeItem(cacheKeyFor(sk));
+    showCacheInfo();
+  }
+};
+
+async function migrate(dry) {
+  const session = currentSession();
+  const [y1, y2] = session.year.replaceAll(" ", "").split("/");
+  const t = Number(session.term) + 1;
+  const prefix = `${y1.slice(-2)}/${y2.slice(-2)}/${t}/`;
+  const sessionKey = currentSessionKey();   // also the id-counter doc (as in class.html)
+  const cache = loadCache(sessionKey);
+  const useCache = !$("ignoreCache").checked;
+  log(`${dry ? "DRY RUN - " : ""}Session ${session.year}, ${terms[session.term]}  (id prefix ${prefix})`);
+
+  // all classes, in section order, de-duplicated
+  const classes = [];
+  for (const sect in sections) for (const c of (sections[sect].classes || [])) {
+    if (!classes.some(x => key(x) === key(c))) classes.push(c);
+  }
+  log(`Classes found: ${classes.length} (${classes.join(", ")}).`);
+  if (!classes.length) throw new Error("No classes found in the section document.");
+
+  const counterRef = doc(db, schoolId, sessionKey);
+  const counterSnap = await read(counterRef, "id counter");
+  let counter = counterSnap.exists() ? (counterSnap.data().lastStudentId ?? 0) : 0;
+  log(`Id counter currently ${counter}.`);
+
+  const totals = { students: 0, created: 0, issued: 0, existed: 0, skipped: 0, failed: 0, cached: 0 };
+
+  for (const cls of classes) {
+    const row = $("summary").insertRow();
+    const stat = { n: 0, created: 0, issued: 0, existed: 0, skipped: 0 };
+    const setRow = status => {
+      row.innerHTML = `<td>${cls}</td><td>${stat.n}</td><td>${stat.created}</td><td>${stat.issued}</td><td>${stat.existed}</td><td>${stat.skipped}</td><td>${status}</td>`;
+    };
+
+    if (useCache && cache.done[cls]) {
+      setRow("done earlier (cached)");
+      totals.cached++;
+      continue;
+    }
+    setRow("working...");
+    const counterBefore = counter;
+
+    try {
+      const path = `${schoolId}/${sessionKey}/${key(cls)}/students`;
+      const snap = await read(doc(db, schoolId, sessionKey, key(cls), "students"), path);
+      const roster = snap.exists() ? snap.data() : {};
+      const entries = Object.entries(roster);
+      stat.n = entries.length;
+      log(`[${cls}] read ${stat.n} entr${stat.n === 1 ? "y" : "ies"}`);
+
+      if (!entries.length) {
+        setRow("empty");
+        if (!dry) { cache.done[cls] = Date.now(); saveCache(sessionKey, cache); }
+        continue;
+      }
+
+      // ids already present in this roster (so new ids never clash with them)
+      const reserved = new Set();
+      for (const [, s] of entries) {
+        if (typeof s?.id === "string" && ID_RE.test(s.id)) {
+          reserved.add(s.id);
+          if (s.id.startsWith(prefix)) counter = Math.max(counter, Number(s.id.slice(prefix.length)) || 0);
+        }
+      }
+
+      // issue ids in alphabetical order so numbering is predictable
+      entries.sort((a, b) => (a[1]?.name ?? "").trim().localeCompare((b[1]?.name ?? "").trim()));
+
+      const newRoster = {};
+      const masters = [];
+      const used = new Set();
+      const issueId = async () => {
+        let id;
+        do {
+          counter++;
+          id = prefix + counter;
+        } while (reserved.has(id) || used.has(id) || (await read(doc(db, schoolId, "db", "students", docId(id)), "master " + id)).exists());
+        return id;
+      };
+
+      for (const [k, s] of entries) {
+        const student = { ...s };
+        const name = (student.name ?? "").toString().trim();
+        if (!name) {
+          stat.skipped++;
+          log(`[${cls}] skipped "${k}": no name`, "warn");
+          newRoster[k] = student;
+          continue;
+        }
+
+        let id = typeof student.id === "string" && ID_RE.test(student.id) ? student.id : null;
+        let issued = false;
+        let exists = false;
+        if (id && used.has(id)) {
+          log(`[${cls}] duplicate id ${id} for "${name}" - issuing a new id`, "warn");
+          id = null;
+        }
+        if (id) {
+          const m = await read(doc(db, schoolId, "db", "students", docId(id)), "master " + id);
+          if (m.exists()) {
+            if ((m.data().name ?? "").trim() === name.toLowerCase()) exists = true;
+            else {   // id belongs to a different student: never overwrite it
+              log(`[${cls}] id ${id} already belongs to "${m.data().name}" - issuing a new id for "${name}"`, "warn");
+              id = null;
+            }
+          }
+        }
+        if (!id) {
+          id = await issueId();
+          issued = true;
+          stat.issued++;
+        }
+        used.add(id);
+
+        // ---- working-copy entry (what class.html keeps in the roster) ----
+        student.id = id;
+        student.name = name;
+        student.gender = cleanGender(student.gender);
+        student.picURL ??= "";
+        student.religion ??= "";
+        student.names = name.toLowerCase().split(" ").filter(Boolean);
+        student.section ||= sectionOf(cls);
+        if (student.section == null) delete student.section;
+        newRoster[id] = student;
+
+        if (exists) { stat.existed++; continue; }
+
+        // ---- master record (same shape class.html writes when it issues an id) ----
+        const upStd = {
+          class: cls.toLowerCase(),
+          id,
+          names: name.toLowerCase().split(" ").filter(Boolean),
+          name: name.toLowerCase(),
+          gender: student.gender.toLowerCase(),
+          religion: (student.religion ?? "").toString().toLowerCase()
+        };
+        for (const f in student) {
+          if (!upStd[f] && student[f] !== undefined) upStd[f] = student[f];   // same copy rule as class.html
+        }
+        masters.push({ ref: doc(db, schoolId, "db", "students", docId(id)), data: upStd });
+        stat.created++;
+      }
+
+      if (masters.length + 2 > MAX_BATCH) throw new Error(`${masters.length} records exceed the batch limit`);
+
+      if (!dry) {
+        // one atomic batch: masters + working copy + id counter
+        const batch = writeBatch(db);
+        masters.forEach(m => batch.set(m.ref, m.data));
+        batch.set(doc(db, schoolId, sessionKey, key(cls), "students"), newRoster);   // full replace, like class.html
+        if (counter > counterBefore) batch.set(counterRef, { lastStudentId: counter }, { merge: true });
+        await batch.commit();
+        cache.done[cls] = Date.now();
+        saveCache(sessionKey, cache);
+      }
+      log(`[${cls}] ${stat.created} master(s) ${dry ? "would be " : ""}created, ${stat.issued} new id(s), ${stat.existed} already existed, ${stat.skipped} skipped`, "ok");
+      setRow(dry ? "dry run" : "done");
+      totals.students += stat.n; totals.created += stat.created; totals.issued += stat.issued;
+      totals.existed += stat.existed; totals.skipped += stat.skipped;
+    } catch (e) {
+      counter = counterBefore;     // nothing from this class was committed, so give its ids back
+      totals.failed++;
+      setRow("FAILED");
+      log(`[${cls}] FAILED: ${e.message || e}  - continuing with the next class`, "err");
+    }
+  }
+
+  log(`\nTOTAL: ${totals.students} students, ${totals.created} master(s) ${dry ? "would be " : ""}created, ${totals.issued} new id(s), ${totals.existed} already existed, ${totals.skipped} skipped. ${totals.cached} class(es) skipped from saved progress, ${totals.failed} failed.`, totals.failed ? "warn" : "ok");
+  if (totals.failed) log("Run again to retry the failed classes - finished ones will be skipped.", "warn");
+  if (dry) log("Dry run only - nothing was written. Untick 'Dry run' to apply.", "warn");
+  showCacheInfo();
+}
+</script>
+</body>
+</html>
