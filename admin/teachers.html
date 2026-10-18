@@ -343,8 +343,9 @@ console.log(id);
       vals.forEach(val=>{
       let teacher = val
       teacher.load ??= {};
-      if (!teacher.sections.filter(sect=>sects.includes(sect)).length) return;
-      addField(teacher);
+       if (id==schoolId || id=="dev") addField(teacher)
+       else if (!teacher.sections.filter(sect=>sects.includes(sect)).length) return;
+       addField(teacher);
       
     }); 
   }
