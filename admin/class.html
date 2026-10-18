@@ -9,13 +9,13 @@
   <title>STUDENT</title>
   <style>
     :root {
-      --primary: #9c3150;
-      --primary-hover: #842742;
-      --bg: #f7f6f4;
-      --card: #ffffff;
-      --text: #2f2d33;
-      --muted: #8a747a;
-      --border: #ece9e6;
+      --primary: #4f8cff;
+      --primary-hover: #3b6fd9;
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #ffffff;
+      --muted: #aaaaaa;
+      --border: #2a2a2a;
     }
 
     body {
@@ -58,9 +58,9 @@
       display: inline-block;
       margin: 1rem 0.4rem 0;
       padding: 0.7rem 1.5rem;
-      background: #f6e8ec; border: 1px solid #e8cdd5;
-      color: #870b2d;
-      
+      background: var(--primary);
+      color: #fff;
+      border: none;
       border-radius: 8px;
       font-size: 1rem;
       cursor: pointer;
@@ -92,7 +92,7 @@
     }
 
     th {
-      background: #ece9e6;
+      background: #1a1a1a;
       font-weight: 600;
       color: var(--primary);
       text-transform: uppercase;
@@ -100,7 +100,7 @@
     }
 
     tr:hover td {
-      background: rgba(47,45,51,0.04);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     /* Passport image */
@@ -110,7 +110,7 @@
       object-fit: cover;
       border-radius: 8px;
       border: 2px solid var(--border);
-      background: #ece9e6;
+      background: #222;
       padding: 2px;
       transition: transform 0.2s;
     }
@@ -187,10 +187,6 @@
     display: block;
   }
   </style>
-
-  <!-- Kauna brand theme -->
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;600&family=Roboto+Slab:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../brand.css">
 </head>
 <body>
   <h1>Students</h1>
@@ -236,12 +232,19 @@
   appId: "1:596350496353:web:84c66c351700ddf0824420",
   measurementId: "G-3MGCDH4FRF"
 }; */
-  
-  
-  const schoolId = "kauna";
-     // Replace with your Cloudinary details
-  const cloudName = "daktkkz2k"; // Replace with your Cloudinary cloud name
-  const uploadPreset = "passport"; // Replace with your unsigned preset
+
+  // Cloudflare R2 passport storage
+  const PICS_DOMAIN = "https://pics.mainafly.com";
+  const WORKER_URL = "https://falling-bonus-3567.yusufmainaishaku.workers.dev/";
+  // Every photo is converted to this single format before upload, so the
+  // URL of any student's picture is always predictable:
+  //   PICS_DOMAIN/schoolId/studentId.PIC_EXT
+  // (must match the extension the worker stores image/jpeg under)
+  // The worker's response key has no extension, so the primary URL has none.
+  // setStudentPic() falls back to ".jpg" automatically if that fails.
+  const PIC_EXT = "";
+  const PIC_MIME = "image/jpeg";
+  const PIC_MAX_SIDE = 800; // px, longest side after resize
   // const schoolId = "alhidayah";
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
@@ -337,16 +340,15 @@ let sectionDoc = await getDoc(sectionRef);
     if (!clas) return;
     row.classList.add("record");
     row.classList.add("std");
-    console.log(result.picURL);
     if (!result.section){
       result.section = getSectionByClass(clas, sections);  
       console.log(clas, result.section);      
     }
-    let picURL = optimizeCloudinaryUrl(result.picURL);
+    let picURL = studentPicUrl(result.id);
       row.innerHTML = `
       <td class="passport std">
-      <img src="${picURL}">
-      <input type="file" accept="image/*" capture="environment" id="cameraInput">
+      <img src="../../std-pic.jpg">
+      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" capture="environment">
       </td>
       <td class="id std">${result.id??"Not Yet Generated"}</td>
        <td class="name std" contenteditable>
@@ -454,29 +456,34 @@ let sectionDoc = await getDoc(sectionRef);
       let psp = row.querySelector(".passport");
       let imgIn = psp.querySelector("input");
       let preview = psp.querySelector("img");
+      if (result.id) setStudentPic(preview, result.id, false);
       imgIn.onchange = async (event) => {
       const file = event.target.files[0];
+      event.target.value = ""; // allow re-selecting the same file later
       if (!file) return;
-    
-      // Show temporary preview
-      
-      // Prepare upload
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", uploadPreset);
+      if (!result.id) {
+        alert("Save the student first so an ID is generated, then upload the passport.");
+        return;
+      }
 
       try {
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          { method: "POST", body: formData }
-        );
-        const data = await res.json();
-        preview.src = data.secure_url; // Final Cloudinary URL
-        console.log("Uploaded to Cloudinary:", data);
-        result.picURL = data.secure_url;
-       /* if (result.id){
-          await setDoc(doc(db, schoolId, "db", "students", id.replaceAll("/", "_")), {picURL: data.secure_url}, {merge:true});
-        }*/
+        // Normalise to one format/size so the URL is always predictable
+        const blob = await toStandardJpeg(file);
+        const formData = new FormData();
+        formData.append("image", blob, `${studentKey(result.id)}.${PIC_EXT}`);
+        formData.append("schoolId", schoolId);
+        formData.append("studentId", studentKey(result.id));
+
+        const res = await fetch(WORKER_URL, { method: "POST", body: formData });
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || data.message || res.statusText || "Unknown error");
+        }
+        console.log("Uploaded to R2, key:", data.key);
+        // Same URL every time, so bust the browser cache to show the new photo
+        console.log("Picture URL:", `${PICS_DOMAIN}/${data.key}`);
+        setStudentPic(preview, result.id, true);
         alert("done!");
       } catch (err) {
         alert("Upload failed: " + err.message);
@@ -620,11 +627,9 @@ add.onclick = e=>{
             console.log(id);
             stdIds.push(id);
             if (!stds[id]) {
-              std.picURL ??="";
               std.religion ??="";
-               let {name, gender, id, picURL, religion} = std;
-               stds[id] = {name, gender, id, picURL, religion};
-              console.log(std.gender, std.name, std.picURL);
+               let {name, gender, id, religion} = std;
+               stds[id] = {name, gender, id, religion};
            }           
         });
         let supersetIds = Array.from(new Set(cbsIds.concat(stdIds)));
@@ -746,10 +751,41 @@ function isEqual(a, b) {
 }
 
   
-  function optimizeCloudinaryUrl(url, params = "f_auto,q_auto") {
-    if (!url || !url.length) return "../../std-pic.jpg";
-    return url.replace("/upload/", `/upload/${params}/`);
-}
+  // Student IDs look like 24/25/1/7; slashes aren't allowed by the worker
+  function studentKey(id) {
+    return String(id).replaceAll("/", "_");
+  }
+
+  // Predictable picture URL: https://pics.mainafly.com/schoolId/studentId.jpg
+  function studentPicUrl(id) {
+    if (!id) return "../../std-pic.jpg";
+    return `${PICS_DOMAIN}/${schoolId}/${studentKey(id)}${PIC_EXT ? "." + PIC_EXT : ""}`;
+  }
+
+  // Load a student's picture from schoolId/studentId (no extension), else placeholder
+  function setStudentPic(img, id, bust) {
+    const v = bust ? "?v=" + Date.now() : "";
+    const base = `${PICS_DOMAIN}/${schoolId}/${studentKey(id)}`;
+    img.onerror = () => { img.onerror = null; img.src = "../../std-pic.jpg"; };
+    img.src = base + v;
+  }
+
+  // Resize (longest side <= PIC_MAX_SIDE) and re-encode any image as JPEG
+  async function toStandardJpeg(file) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, PIC_MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff"; // JPEG has no transparency (PNG/WebP/GIF may)
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    return await new Promise((resolve, reject) =>
+      canvas.toBlob(b => b ? resolve(b) : reject(new Error("Could not process image")), PIC_MIME, 0.88)
+    );
+  }
   
  async function searchAndMatch(stdId, stdName, stdCls){
     iframe.src = `parent/match.html?wardId=${stdId}&wardName=${stdName}&wardClass=${stdCls}`;
